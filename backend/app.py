@@ -6,31 +6,36 @@ from dotenv import load_dotenv
 from supabase import create_client
 from flask_cors import CORS
 
-app = Flask(__name__)
-CORS(app)
 
 load_dotenv()
 
+app = Flask(__name__)
+CORS(app, supports_credentials=True)
+
+# Später bei deployment anpassen
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecret")
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-
-app.config["SESSION_PERMANENT"] = True
 app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_FILE_DIR"] = "./flask_session"
+app.config["SESSION_PERMANENT"] = True
+app.config["SESSION_USE_SIGNER"] = True
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SECURE"] = False
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+
 Session(app)
 
 
-@app.before_request
-def track_session():
-    print(f"Before Request - Session Data: {session}")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
+# Endpoints
 
 @app.route("/login", methods=["POST"])
-def get_user():
-    if session.get("username"):
-        print("yasss")
-        return jsonify({"success": True, "user": session["username"], "message": "Already logged in."}), 200
+def login():
+    if "user" in session:
+        return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
+
     try:
         email = request.form.get("email")
         password = request.form.get("password")
@@ -46,19 +51,18 @@ def get_user():
 
         if response.data:
             user = response.data[0]
-            session["username"] = user["Username"]
-            print(session)
-
+            session["user"] = {"email": user["Email"], "username": user["Username"]}
+            session.modified = True
             return jsonify({"success": True, "user": user}), 200
         else:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-    except Exception as e:
+    except Exception:
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
 @app.route("/register", methods=["POST"])
-def add_user():
+def register():
     if "user" in session:
         return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
 
@@ -68,7 +72,6 @@ def add_user():
         password = request.form.get("password")
 
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         existing_user = (
             supabase.table("User")
             .select("Email")
@@ -81,19 +84,20 @@ def add_user():
 
         response = (
             supabase.table("User")
-            .insert(
-                {"Username": username, "Email": hashlib.sha256(email.encode()).hexdigest(),
-                 "Password": hashlib.sha256(password.encode()).hexdigest()})
+            .insert({
+                "Username": username,
+                "Email": hashlib.sha256(email.encode()).hexdigest(),
+                "Password": hashlib.sha256(password.encode()).hexdigest()
+            })
             .execute()
         )
 
         user = response.data[0]
-        session["username"] = user["Username"]
-        print(session)
-
+        session["user"] = {"email": user["Email"], "username": user["Username"]}
+        session.modified = True
         return jsonify({"success": True, "user": user}), 201
 
-    except Exception as e:
+    except Exception:
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
@@ -101,6 +105,13 @@ def add_user():
 def logout():
     session.pop("user", None)
     return jsonify({"success": True, "message": "Logged out successfully"}), 200
+
+
+@app.route("/session-check", methods=["GET"])
+def session_check():
+    if "user" in session:
+        return jsonify({"success": True, "user": session["user"]}), 200
+    return jsonify({"success": False, "error": "No active session"}), 401
 
 
 if __name__ == "__main__":
