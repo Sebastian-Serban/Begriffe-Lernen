@@ -1,10 +1,10 @@
 import os
 import hashlib
 from flask import Flask, jsonify, request, session
-from flask_session import Session
 from dotenv import load_dotenv
 from supabase import create_client
 from flask_cors import CORS
+from datetime import timedelta
 
 
 load_dotenv()
@@ -13,29 +13,22 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
 # Später bei deployment anpassen
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "supersecret")
-app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_FILE_DIR"] = "./flask_session"
-app.config["SESSION_PERMANENT"] = True
-app.config["SESSION_USE_SIGNER"] = True
-app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SECURE"] = False
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-
-
-Session(app)
+app.secret_key = os.getenv("SECRET_KEY", "supersecret")
+app.permanent_session_lifetime = timedelta(seconds=50)
 
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
+
 # Endpoints
+
 
 @app.route("/login", methods=["POST"])
 def login():
+    print(session)
     if "user" in session:
         return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
-
     try:
         email = request.form.get("email")
         password = request.form.get("password")
@@ -51,8 +44,10 @@ def login():
 
         if response.data:
             user = response.data[0]
+
+            session.permanent = True
             session["user"] = {"email": user["Email"], "username": user["Username"]}
-            session.modified = True
+
             return jsonify({"success": True, "user": user}), 200
         else:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
@@ -93,8 +88,8 @@ def register():
         )
 
         user = response.data[0]
+        session.permanent = True
         session["user"] = {"email": user["Email"], "username": user["Username"]}
-        session.modified = True
         return jsonify({"success": True, "user": user}), 201
 
     except Exception:
@@ -115,4 +110,4 @@ def session_check():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
