@@ -91,7 +91,6 @@ def register():
         session.permanent = True
         session["user"] = {"email": user["Email"], "username": user["Username"]}
         return jsonify({"success": True, "user": user}), 201
-
     except Exception:
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
