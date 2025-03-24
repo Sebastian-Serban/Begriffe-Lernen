@@ -112,6 +112,7 @@ def add_set():
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
+
 @app.route("/users/<user_id>/sets", methods=["GET"])
 def get_sets(user_id):
     try:
@@ -181,6 +182,38 @@ def get_set(set_id):
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
+@app.route("/sets/<set_id>", methods=["DELETE"])
+def delete_set(set_id):
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        response = (
+            supabase.table("LearningSet")
+            .select("LearningSetID, User!inner()")
+            .eq("User.Email", session["user"]["email"])
+            .eq("LearningSetID", set_id)
+            .execute()
+        )
+
+        if not response.data:
+            return jsonify({"success": False, "error": "Forbidden access."}), 403
+
+        response = (
+            supabase.table("LearningSet")
+            .delete()
+            .eq("LearningSetID", set_id)
+            .execute()
+        )
+
+
+        return jsonify({"success": True, "Deleted Set": response.data}), 200
+    except Exception:
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
+
 @app.route("/sets/<set_id>/cards", methods=["POST"])
 def add_cards(set_id):
     try:
@@ -199,6 +232,8 @@ def add_cards(set_id):
 
         if not response.data:
             return jsonify({"success": False, "error": "Forbidden access."}), 403
+
+        supabase.table("Card").delete().eq("LearningSetID", set_id).execute()
 
         data = request.json
 
@@ -224,22 +259,15 @@ def get_cards(set_id):
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        response = (
-            supabase.table("LearningSet")
-            .select("*")
-            .eq("LearningSetID", set_id)
-            .execute()
-        )
-
-        if not response.data:
-            return jsonify({"success": False, "error": "No sets found."}), 404
-
         cards = (
             supabase.table("Card")
             .select("*")
             .eq("LearningSetID", set_id)
             .execute()
         )
+
+        if not cards.data:
+            return jsonify({"success": False, "error": "Data not found."}), 404
 
         return jsonify({"success": True, "cards": cards.data}), 200
     except Exception:
