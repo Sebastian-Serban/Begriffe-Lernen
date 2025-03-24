@@ -82,6 +82,25 @@ def register():
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
+@app.route("/users/<username>", methods=["GET"])
+def get_user(username):
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        user = (
+            supabase.table("User")
+            .select("*")
+            .eq("Username", username)
+            .execute()
+        )
+
+        return jsonify({"success": True, "Set": user.data}), 200
+    except Exception:
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
 @app.route("/sets", methods=["POST"])
 def add_set():
     try:
