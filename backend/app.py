@@ -288,6 +288,8 @@ def get_cards(set_id):
         if not cards.data:
             return jsonify({"success": False, "error": "Data not found."}), 404
 
+        print(cards.data)
+
         return jsonify({"success": True, "cards": cards.data}), 200
     except Exception:
         return jsonify({"success": False, "error": "Internal server error"}), 500
