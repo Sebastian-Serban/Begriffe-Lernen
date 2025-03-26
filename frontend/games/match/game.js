@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function (event) {
     const shuffle = []
+    const grid_cards = []
 
     const gamestate = {
         selected_cards: [],
@@ -26,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
         },
         setup() {
             const self = this
+            //10 später mit set id von url path nehmen
             fetch("http://127.0.0.1:5000/sets/10/cards", {
                 method: "GET",
                 credentials: "include"
@@ -50,7 +52,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
                 shuffle.forEach((card) => {
                     const div = document.createElement('div');
 
-                    console.log(card)
                     div.className = 'grid-item';
                     div.textContent = card;
 
@@ -60,9 +61,10 @@ document.addEventListener("DOMContentLoaded", function (event) {
                             self.selected_cards.push(button.target)
                         }   if (self.selected_cards.length === 2) {
                                 self.getmatches()
-                            }
+                        }
                     });
 
+                    grid_cards.push(div)
                     grid.appendChild(div);
 
                 })
@@ -74,36 +76,39 @@ document.addEventListener("DOMContentLoaded", function (event) {
             });
         },
         getmatches() {
-            console.log(document.getElementsByClassName("grid-item").length)
-            this.matches.forEach((match) => {
-                const [card1, card2] = this.selected_cards;
-                console.log(card1.textContent)
-                console.log(card2.textContent)
+            const [card1, card2] = this.selected_cards;
 
-                const isMatch = (
-                    (match.Term === card1.textContent && match.Explanation === card2.textContent) ||
-                    (match.Term === card2.textContent && match.Explanation === card1.textContent)
-                );
+            if (!card1 || !card2) return;
 
-                if (isMatch) {
-                    card1.style.visibility = "hidden";
-                    card2.style.visibility = "hidden";
-                    this.matches.splice(this.matches.indexOf(match), 1);
-                } else {
-                    card1.style.backgroundColor = "grey";
-                    card2.style.backgroundColor = "grey";
-                }
-
-                this.selected_cards = [];
+            const match = this.matches.find((m) => {
+                return [card1.textContent, card2.textContent].includes(m.Term) &&
+                       [card1.textContent, card2.textContent].includes(m.Explanation) &&
+                       card1.textContent !== card2.textContent;
             });
 
-            if (document.getElementsByClassName("grid-item").length === 0) {
+            if (match) {
+                card1.style.visibility = "hidden";
+                card2.style.visibility = "hidden";
+                this.matches.splice(this.matches.indexOf(match), 1);
+            } else {
+                card1.style.backgroundColor = "grey";
+                card2.style.backgroundColor = "grey";
+            }
+
+            this.selected_cards = [];
+
+            if (this.matches.length === 0) {
                 this.stopTimer();
-                alert("You win. Time: " + this.time)
+                alert("You win. Time: " + this.time);
+                this.time = "0.00s"
+                this.selected_cards = []
+                shuffle.splice(0, shuffle.length);
+                grid_cards.forEach((card) => card.style.display = "None")
             }
         }
+
     }
     gamestate.setup();
 
-
+    document.getElementById("start").addEventListener("click", () => gamestate.setup());
 })
