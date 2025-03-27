@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function (event) {
-    const shuffle = []
-    const grid_cards = []
+    const shuffle = [];
+    const grid_cards = [];
 
     const gamestate = {
         selected_cards: [],
@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
         matches: [],
         timerInterval: null,
         startTime: null,
+        isAnimating: false,
+
         startTimer() {
             this.startTime = Date.now();
             const timerDisplay = document.getElementById("timer");
@@ -25,90 +27,117 @@ document.addEventListener("DOMContentLoaded", function (event) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         },
+
         setup() {
-            const self = this
-            //10 später mit set id von url path nehmen
+            const self = this;
+
             fetch("http://127.0.0.1:5000/sets/10/cards", {
                 method: "GET",
                 credentials: "include"
             })
             .then(res => res.json())
             .then(result => {
+                // Clear previous data
+                const grid = document.getElementsByClassName("grid")[0];
+                while (grid.firstChild) grid.removeChild(grid.firstChild);
+                shuffle.length = 0;
+                grid_cards.length = 0;
+                self.matches.length = 0;
+                self.selected_cards.length = 0;
+
                 result.cards.forEach(card => {
-                    shuffle.push(card.Term)
-                    shuffle.push(card.Explanation)
-                    self.matches.push({"Term": card.Term, "Explanation": card.Explanation})
+                    shuffle.push(card.Term);
+                    shuffle.push(card.Explanation);
+                    self.matches.push({ Term: card.Term, Explanation: card.Explanation });
                 });
 
                 for (let i = shuffle.length - 1; i > 0; i--) {
-                    let j = Math.floor(Math.random() * (i + 1));
-                    let temp = shuffle[i];
-                    shuffle[i] = shuffle[j];
-                    shuffle[j] = temp;
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffle[i], shuffle[j]] = [shuffle[j], shuffle[i]];
                 }
-
-                const grid = document.getElementsByClassName("grid")[0];
 
                 shuffle.forEach((card) => {
                     const div = document.createElement('div');
-
                     div.className = 'grid-item';
                     div.textContent = card;
 
                     div.addEventListener("click", (button) => {
+                        if (self.isAnimating) return;
+
                         if (self.selected_cards.length < 2) {
-                            div.style.backgroundColor = "green";
-                            self.selected_cards.push(button.target)
-                        }   if (self.selected_cards.length === 2) {
-                                self.getmatches()
+                            div.style.animation = "selectOnce 0.2s ease forwards";
+                            self.selected_cards.push(button.target);
+                        }
+
+                        if (self.selected_cards.length === 2) {
+                            self.isAnimating = true;
+                            self.getmatches();
                         }
                     });
 
-                    grid_cards.push(div)
+                    grid_cards.push(div);
                     grid.appendChild(div);
+                });
 
-                })
                 self.startTimer();
-
             })
             .catch(err => {
                 console.error("Game error:", err);
             });
         },
+
         getmatches() {
             const [card1, card2] = this.selected_cards;
-
             if (!card1 || !card2) return;
 
-            const match = this.matches.find((m) => {
-                return [card1.textContent, card2.textContent].includes(m.Term) &&
-                       [card1.textContent, card2.textContent].includes(m.Explanation) &&
-                       card1.textContent !== card2.textContent;
-            });
+            const match = this.matches.find((m) =>
+                [card1.textContent, card2.textContent].includes(m.Term) &&
+                [card1.textContent, card2.textContent].includes(m.Explanation) &&
+                card1.textContent !== card2.textContent
+            );
 
             if (match) {
-                card1.style.visibility = "hidden";
-                card2.style.visibility = "hidden";
-                this.matches.splice(this.matches.indexOf(match), 1);
+                card1.style.animation = "correctAnswer 0.2s ease forwards";
+                card2.style.animation = "correctAnswer 0.2s ease forwards";
+                setTimeout(() => {
+                    card1.style.visibility = "hidden";
+                    card2.style.visibility = "hidden";
+                    this.matches.splice(this.matches.indexOf(match), 1);
+                    console.log(this.matches)
+                    this.selected_cards = [];
+                    this.isAnimating = false;
+
+                    if (this.matches.length === 0) {
+                        this.stopTimer();
+                        alert("You win. Time: " + this.time);
+                        this.time = "0.00s";
+                        shuffle.length = 0;
+                        grid_cards.length = 0;
+                        this.matches.length = 0;
+                        this.selected_cards.length = 0;
+                    }
+                }, 200);
             } else {
-                card1.style.backgroundColor = "grey";
-                card2.style.backgroundColor = "grey";
-            }
+                card1.style.animation = "deselectOnce 0.2s ease forwards";
+                card2.style.animation = "deselectOnce 0.2s ease forwards";
 
-            this.selected_cards = [];
-
-            if (this.matches.length === 0) {
-                this.stopTimer();
-                alert("You win. Time: " + this.time);
-                this.time = "0.00s"
-                this.selected_cards = []
-                shuffle.splice(0, shuffle.length);
-                grid_cards.forEach((card) => card.style.display = "None")
+                setTimeout(() => {
+                    card1.style.animation = "";
+                    card2.style.animation = "";
+                    this.selected_cards = [];
+                    this.isAnimating = false;
+                }, 400);
             }
         }
+    };
 
-    }
     gamestate.setup();
 
-    document.getElementById("start").addEventListener("click", () => gamestate.setup());
-})
+    document.getElementById("start").addEventListener("click", () => {
+        shuffle.length = 0;
+        grid_cards.length = 0;
+        gamestate.matches.length = 0;
+        gamestate.selected_cards.length = 0;
+        gamestate.setup();
+    });
+});
