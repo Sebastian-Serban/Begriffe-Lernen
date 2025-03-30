@@ -31,7 +31,10 @@ document.addEventListener("DOMContentLoaded", function (event) {
         setup() {
             const self = this;
 
-            fetch("http://127.0.0.1:5000/sets/10/cards", {
+            const params = new URLSearchParams(window.location.search);
+            const set = params.get("set");
+
+            fetch(`http://127.0.0.1:5000/sets/${(set) ? set : 10}/cards`, {
                 method: "GET",
                 credentials: "include"
             })

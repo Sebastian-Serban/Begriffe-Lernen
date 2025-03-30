@@ -1,0 +1,208 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #E0E1DD;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.container {
+    margin-top: 1rem;
+    padding: 20px 50px 50px;
+    width: 90%;
+    height: 90%;
+    background-color: #1B263B;
+    color: #E0E1DD;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+}
+
+.title {
+    font-size: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
+}
+
+#game-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    position: relative;
+}
+
+.cards-wrapper {
+    position: relative;
+    width: 100rem;
+    height: 50rem;
+    flex-shrink: 0;
+}
+
+.flip-card {
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    opacity: 0;
+    z-index: 0;
+}
+
+.flip-card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    transform: rotateX(0deg);
+}
+
+.flip-card-inner.flipped {
+    transform: rotateX(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    backface-visibility: hidden;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    flex-direction: column;
+}
+
+.flip-card-front {
+    background-color: #bbb;
+    color: black;
+}
+
+.flip-card-back {
+    background-color: dodgerblue;
+    color: white;
+    transform: rotateX(180deg);
+}
+
+.prev, .next {
+    margin: 4rem;
+    font-size: 5rem;
+    background: none;
+    border: none;
+    color: #E0E1DD;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.prev:hover, .next:hover {
+    transform: scale(1.03);
+    background-color: #E0E1DD;
+    color: #1B263B;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.prev:active, .next:active {
+    transform: scale(0.95);
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.next-show {
+    display: block;
+    z-index: 10;
+    animation: NextFadeInRotate 0.8s ease forwards;
+}
+
+.next-hide {
+    display: block;
+    z-index: 9;
+    animation: NextFadeOutRotate 0.8s ease forwards;
+}
+
+@keyframes NextFadeInRotate {
+    0% {
+        transform: translateX(700px) rotateY(-45deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes NextFadeOutRotate {
+    0% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-700px) rotateY(45deg);
+        opacity: 0;
+    }
+}
+
+.prev-show {
+    display: block;
+    z-index: 10;
+    animation: PrevFadeInRotate 0.8s ease forwards;
+}
+
+.prev-hide {
+    display: block;
+    z-index: 9;
+    animation: PrevFadeOutRotate 0.8s ease forwards;
+}
+
+@keyframes PrevFadeInRotate {
+    0% {
+        transform: translateX(-700px) rotateY(45deg);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes PrevFadeOutRotate {
+    0% {
+        transform: translateX(0) rotateY(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(700px) rotateY(-45deg);
+        opacity: 0;
+    }
+}
+
+button {
+    margin: 10px;
+    width: 7%;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #778DA9;
+    color: #0D1B2A;
+    cursor: pointer;
+}
