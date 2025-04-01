@@ -1,0 +1,50 @@
+body {
+    font-family: sans-serif;
+    margin: 2rem;
+    padding: 0;
+}
+
+h1, h2 {
+    margin-bottom: 1rem;
+}
+
+section {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #ccc;
+}
+
+label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+input {
+    margin-bottom: 1rem;
+    display: block;
+    padding: 0.25rem;
+    width: 100%;
+    max-width: 300px;
+}
+
+.result {
+    margin-bottom: 1rem;
+    display: block;
+    padding: 0.25rem;
+    width: 100%;
+    max-width: 300px;
+}
+
+ul {
+    margin-left: 1.5rem;
+}
+
+button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid #000;
+    background: none;
+}

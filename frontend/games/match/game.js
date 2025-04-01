@@ -47,9 +47,9 @@ document.addEventListener("DOMContentLoaded", function (event) {
                     grid.style.gridTemplateColumns = "repeat(2, 1fr)";
                     grid.style.gridTemplateRows = "repeat(2, 1fr)";
                 } else if (card_count > 10) {
-                    while (result.cards.length > 10) {
-                        result.cards.splice(Math.floor(Math.random()*(card_count-1)), 1);
-                    }
+                        while (result.cards.length > 10) {
+                            result.cards.splice(Math.floor(Math.random()*(card_count-1)), 1);
+                        }
                 }
 
                 const card_list = result
