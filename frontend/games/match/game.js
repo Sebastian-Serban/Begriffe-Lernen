@@ -40,19 +40,33 @@ document.addEventListener("DOMContentLoaded", function (event) {
             })
             .then(res => res.json())
             .then(result => {
-                // Clear previous data
+                const card_count = result.cards.length
+
                 const grid = document.getElementsByClassName("grid")[0];
+                if (card_count <= 3) {
+                    grid.style.gridTemplateColumns = "repeat(2, 1fr)";
+                    grid.style.gridTemplateRows = "repeat(2, 1fr)";
+                } else if (card_count > 10) {
+                    while (result.cards.length > 10) {
+                        result.cards.splice(Math.floor(Math.random()*(card_count-1)), 1);
+                    }
+                }
+
+                const card_list = result
+
                 while (grid.firstChild) grid.removeChild(grid.firstChild);
                 shuffle.length = 0;
                 grid_cards.length = 0;
                 self.matches.length = 0;
                 self.selected_cards.length = 0;
 
-                result.cards.forEach(card => {
+                card_list.cards.forEach(card => {
                     shuffle.push(card.Term);
                     shuffle.push(card.Explanation);
                     self.matches.push({ Term: card.Term, Explanation: card.Explanation });
                 });
+
+                while (shuffle.length < (card_count > 3 ? 20 : 10)) shuffle.push("");
 
                 for (let i = shuffle.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -61,8 +75,13 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
                 shuffle.forEach((card) => {
                     const div = document.createElement('div');
-                    div.className = 'grid-item';
+                    if (!card) {
+                        div.style.visibility = "hidden";
+                    }
                     div.textContent = card;
+                    div.className = 'grid-item';
+
+
 
                     div.addEventListener("click", (button) => {
                         if (self.isAnimating) return;
@@ -129,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
                     card2.style.animation = "";
                     this.selected_cards = [];
                     this.isAnimating = false;
-                }, 400);
+                }, 200);
             }
         }
     };
