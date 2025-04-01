@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         div.className = "flip-card"
         div.innerHTML = `<div class="flip-card-inner">
                             <div class="flip-card-front">
-                                <p>${card.Term}</p>
+                                <h1>${card.Term}</h1>
                             </div>
                             <div class="flip-card-back">
                                 <h1>${card.Explanation}</h1>
@@ -80,4 +80,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             current_card++;
         }
     });
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+    cards_container.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+
+    cards_container.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        if (touchEndX < touchStartX - 10) {
+            document.getElementsByClassName("next")[0].click();
+        }
+        if (touchEndX > touchStartX + 10) {
+            document.getElementsByClassName("prev")[0].click();
+        }
+    });
+
 });
