@@ -1,10 +1,23 @@
-body, html {
+:root {
+    --bg: #E0E1DD;
+    --primary: #0D1B2A;
+    --secondary: #1B263B;
+    --accent: #778DA9;
+    --light: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    width: 100%;
+}
+
+html, body {
     height: 100%;
-    font-family: Arial, sans-serif;
-    background-color: #E0E1DD;
+    width: 100%;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -12,58 +25,80 @@ body, html {
 
 .container {
     text-align: center;
-    background-color: #1B263B;
-    color: #E0E1DD;
-    padding: 50px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 600px;
+    padding: 2rem;
+    max-width: 800px;
+    width: 100%;
+}
+
+h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 1.5rem;
+    color: #555;
+    margin-bottom: 3rem;
 }
 
 .button-group {
-    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
 }
 
 button {
-    padding: 10px 20px;
-    margin: 10px;
-    border: none;
+    font-size: 1.25rem;
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    border: 2px solid var(--primary);
     cursor: pointer;
-    font-size: 16px;
-    border-radius: 5px;
+    transition: all 0.2s ease;
+    min-width: 150px;
 }
 
 .login-btn {
-    background-color: #778DA9;
-    color: #0D1B2A;
+    background-color: var(--light);
+    color: var(--primary);
+}
+
+.login-btn:hover {
+    background-color: var(--accent);
+    color: var(--light);
+    border-color: var(--accent);
 }
 
 .register-btn {
-    background-color: #0D1B2A;
-    color: #E0E1DD;
+    background-color: var(--primary);
+    color: var(--light);
+    border: none;
 }
 
-
-.login-container {
-    text-align: center;
-    background-color: #415A77;
-    color: #E0E1DD;
-    padding: 40px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
+.register-btn:hover {
+    background-color: var(--secondary);
 }
 
-input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #E0E1DD;
-    border-radius: 5px;
-}
+/* 🔄 Mobile Optimierung */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.5rem;
+    }
 
-button {
-    width: 100%;
-    background-color: #778DA9;
-    color: #0D1B2A;
+    p {
+        font-size: 1.2rem;
+    }
+
+    button {
+        width: 100%;
+        max-width: 300px;
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+        align-items: center;
+    }
 }

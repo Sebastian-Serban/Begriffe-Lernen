@@ -308,5 +308,39 @@ def session_check():
     return jsonify({"success": False, "error": "No active session"}), 401
 
 
+@app.route("/sets/<set_id>", methods=["POST"])
+def update_set(set_id):
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        data = request.json
+
+        check = (
+            supabase.table("LearningSet")
+            .select("LearningSetID, User!inner()")
+            .eq("LearningSetID", set_id)
+            .eq("User.Email", session["user"]["email"])
+            .execute()
+        )
+
+        if not check.data:
+            return jsonify({"success": False, "error": "Forbidden"}), 403
+
+        update = (
+            supabase.table("LearningSet")
+            .update(data)
+            .eq("LearningSetID", set_id)
+            .execute()
+        )
+
+        return jsonify({"success": True, "set": update.data}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
+
+
 if __name__ == "__main__":
     app.run()

@@ -1,0 +1,76 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #E0E1DD;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Login & Register Container */
+.login-container {
+    background-color: #415A77;
+    color: #E0E1DD;
+    padding: 3rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.login-container h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Input Styling */
+input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #E0E1DD;
+    color: #0D1B2A;
+}
+
+input::placeholder {
+    color: #778DA9;
+}
+
+/* Submit Button */
+button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #778DA9;
+    color: #0D1B2A;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+button:hover {
+    background-color: #E0E1DD;
+    color: #1B263B;
+}
+
+/* Extra Links */
+.login-container p {
+    margin-top: 1rem;
+}
+
+.login-container a {
+    color: #E0E1DD;
+    text-decoration: underline;
+    font-size: 0.95rem;
+}
+
+.login-container a:hover {
+    color: #ffffff;
+}

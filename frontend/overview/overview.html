@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meine Lernsets</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <button class="add-set" onclick="showCreateForm()">+</button>
+    <button class="dark-toggle" onclick="toggleDarkMode()">🌓</button>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <input type="text" placeholder="Suchen..." />
+      <div class="user-icon">M</div>
+    </div>
+
+    <section class="content">
+      <h1>Meine Lernsets</h1>
+      <div id="set-list" class="set-list"></div>
+      <p id="empty-message" class="hidden">Keine Lernsets vorhanden.</p>
+    </section>
+  </main>
+</div>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <h2>Neues Lernset erstellen</h2>
+    <div class="form-group">
+      <label for="set-title">Titel</label>
+      <input type="text" id="set-title" placeholder="Titel" />
+    </div>
+    <div class="form-group">
+      <label for="set-description">Beschreibung</label>
+      <input type="text" id="set-description" placeholder="Beschreibung" />
+    </div>
+    <div class="form-group">
+      <h3>Begriffe & Erklärungen</h3>
+      <div id="cards-container" class="cards-container"></div>
+      <button class="add-card-btn" onclick="addCardInput()">+ Karte hinzufügen</button>
+    </div>
+    <div class="modal-actions">
+      <button onclick="createSet()">Speichern</button>
+      <button onclick="closeModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<script src="overview.js"></script>
+</body>
+</html>
