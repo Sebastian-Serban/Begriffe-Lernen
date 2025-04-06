@@ -96,5 +96,4 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementsByClassName("prev")[0].click();
         }
     });
-
 });

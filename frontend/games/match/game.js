@@ -30,29 +30,40 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
         setup() {
             const self = this;
-
             const params = new URLSearchParams(window.location.search);
             const set = params.get("set");
 
-            fetch(`http://127.0.0.1:5000/sets/${(set) ? set : 10}/cards`, {
+            fetch(`http://127.0.0.1:5000/sets/${set}/cards`, {
                 method: "GET",
                 credentials: "include"
             })
             .then(res => res.json())
             .then(result => {
-                const card_count = result.cards.length
+                let availableCards = result.cards.slice();
+                const cardcounts = (window.innerWidth < 480) ? 4 : 5
+                if (availableCards.length > cardcounts) {
+                    while (availableCards.length > cardcounts) {
+                        availableCards.splice(Math.floor(Math.random() * availableCards.length), 1);
+                    }
+                }
+                const totalPairs = availableCards.length;
+                const totalItems = totalPairs * 2;
+
+                let columns = 4;
+                if (window.innerWidth < 480) {
+                    columns = 2;
+                } else if (window.innerWidth < 768) {
+                    columns = 3;
+                } else if (window.innerWidth < 1024) {
+                    columns = 4;
+                }
+                const rows = Math.ceil(totalItems / columns);
+
+                const gridCapacity = rows * columns;
 
                 const grid = document.getElementsByClassName("grid")[0];
-                if (card_count <= 3) {
-                    grid.style.gridTemplateColumns = "repeat(2, 1fr)";
-                    grid.style.gridTemplateRows = "repeat(2, 1fr)";
-                } else if (card_count > 10) {
-                        while (result.cards.length > 10) {
-                            result.cards.splice(Math.floor(Math.random()*(card_count-1)), 1);
-                        }
-                }
-
-                const card_list = result
+                grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+                grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
                 while (grid.firstChild) grid.removeChild(grid.firstChild);
                 shuffle.length = 0;
@@ -60,37 +71,35 @@ document.addEventListener("DOMContentLoaded", function (event) {
                 self.matches.length = 0;
                 self.selected_cards.length = 0;
 
-                card_list.cards.forEach(card => {
+                availableCards.forEach(card => {
                     shuffle.push(card.Term);
                     shuffle.push(card.Explanation);
                     self.matches.push({ Term: card.Term, Explanation: card.Explanation });
                 });
 
-                while (shuffle.length < (card_count > 3 ? 20 : 10)) shuffle.push("");
+                while (shuffle.length < gridCapacity) {
+                    shuffle.push("");
+                }
 
                 for (let i = shuffle.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [shuffle[i], shuffle[j]] = [shuffle[j], shuffle[i]];
                 }
 
-                shuffle.forEach((card) => {
+                shuffle.forEach((cardText) => {
                     const div = document.createElement('div');
-                    if (!card) {
+                    if (!cardText) {
                         div.style.visibility = "hidden";
                     }
-                    div.textContent = card;
+                    div.textContent = cardText;
                     div.className = 'grid-item';
 
-
-
-                    div.addEventListener("click", (button) => {
+                    div.addEventListener("click", (event) => {
                         if (self.isAnimating) return;
-
                         if (self.selected_cards.length < 2) {
                             div.style.animation = "selectOnce 0.2s ease forwards";
-                            self.selected_cards.push(button.target);
+                            self.selected_cards.push(event.target);
                         }
-
                         if (self.selected_cards.length === 2) {
                             self.isAnimating = true;
                             self.getmatches();
@@ -125,10 +134,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
                     card1.style.visibility = "hidden";
                     card2.style.visibility = "hidden";
                     this.matches.splice(this.matches.indexOf(match), 1);
-                    console.log(this.matches)
                     this.selected_cards = [];
                     this.isAnimating = false;
-
                     if (this.matches.length === 0) {
                         this.stopTimer();
                         alert("You win. Time: " + this.time);
@@ -142,7 +149,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
             } else {
                 card1.style.animation = "deselectOnce 0.2s ease forwards";
                 card2.style.animation = "deselectOnce 0.2s ease forwards";
-
                 setTimeout(() => {
                     card1.style.animation = "";
                     card2.style.animation = "";
