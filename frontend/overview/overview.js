@@ -1,4 +1,5 @@
 let currentSetId = null;
+let allSets = [];
 const API = "http://127.0.0.1:5000";
 
 function showSection(id) {
@@ -10,21 +11,52 @@ function loadSets() {
     fetch(`${API}/sets`, { credentials: "include" })
         .then(res => res.json())
         .then(data => {
-            const list = document.getElementById("set-list");
-            list.innerHTML = "";
-            if (!data.success || data.sets.length === 0) {
-                document.getElementById("no-sets").classList.remove("hidden");
-                return;
-            }
-            document.getElementById("no-sets").classList.add("hidden");
-            data.sets.forEach(set => {
-                const div = document.createElement("div");
-                div.className = "set-card";
-                div.innerHTML = `<h3>${set.Title}</h3><p>${set.Description || ""}</p>`;
-                div.onclick = () => showSetDetail(set.LearningSetID, set.Title, set.Description);
-                list.appendChild(div);
-            });
+            allSets = data.sets || [];
+            displaySets(allSets);
+            loadSessionUser();
         });
+}
+
+function displaySets(sets) {
+    const list = document.getElementById("set-list");
+    list.innerHTML = "";
+    if (!sets || sets.length === 0) {
+        document.getElementById("no-sets").classList.remove("hidden");
+        return;
+    }
+    document.getElementById("no-sets").classList.add("hidden");
+    sets.forEach(set => {
+        const div = document.createElement("div");
+        div.className = "set-card";
+        div.innerHTML = `<h3>${set.Title}</h3><p>${set.Description || ""}</p>`;
+        div.onclick = () => showSetDetail(set.LearningSetID, set.Title, set.Description);
+        list.appendChild(div);
+    });
+}
+
+function filterSets() {
+    const term = document.getElementById("search-input").value.toLowerCase();
+    const filtered = allSets.filter(s => s.Title.toLowerCase().includes(term));
+    displaySets(filtered);
+}
+
+function toggleAccountMenu() {
+    document.getElementById("account-menu").classList.toggle("hidden");
+}
+
+function loadSessionUser() {
+    fetch(`${API}/session-check`, { credentials: "include" })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById("account-user").textContent = data.user.username;
+            }
+        });
+}
+
+function logout() {
+    fetch(`${API}/logout`, { method: "POST", credentials: "include" })
+        .then(() => window.location.href = "../index.html");
 }
 
 function showSetDetail(id, title, description) {
@@ -51,7 +83,9 @@ function startGame(mode) {
     if (!currentSetId) return;
     const path = mode === "cards"
         ? `../games/cards/game.html?set=${currentSetId}`
-        : `../games/match/game.html?set=${currentSetId}`;
+        : mode === "match"
+            ? `../games/match/game.html?set=${currentSetId}`
+            : `../games/test/game.html?set=${currentSetId}`;
     window.location.href = path;
 }
 
@@ -67,12 +101,30 @@ function deleteCurrentSet() {
         });
 }
 
+function editCurrentSet() {
+    fetch(`${API}/sets/${currentSetId}/cards`, { credentials: "include" })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("new-set-title").value = document.getElementById("detail-title").textContent;
+            document.getElementById("new-set-description").value = document.getElementById("detail-description").textContent;
+            document.getElementById("card-inputs").innerHTML = "";
+            if (data.success && data.cards) {
+                data.cards.forEach(card => addCardField(card.Term, card.Explanation));
+            }
+            showSection("create-section");
+            document.getElementById("create-step-1").classList.add("hidden");
+            document.getElementById("create-step-2").classList.remove("hidden");
+        });
+}
+
 function backToOverview() {
     showSection("overview-section");
 }
 
 function startCreateFlow() {
+    currentSetId = null;
     document.getElementById("new-set-title").value = "";
+    document.getElementById("new-set-description").value = "";
     document.getElementById("card-inputs").innerHTML = "";
     showSection("create-section");
     document.getElementById("create-step-1").classList.remove("hidden");
@@ -99,21 +151,26 @@ function addCardField(term = "", explanation = "") {
 
 function saveNewSet() {
     const title = document.getElementById("new-set-title").value;
+    const description = document.getElementById("new-set-description").value;
     const cardNodes = document.querySelectorAll(".card-field");
     const cards = Array.from(cardNodes).map(div => {
         const [term, expl] = div.querySelectorAll("input");
         return { Term: term.value, Explanation: expl.value };
     }).filter(c => c.Term && c.Explanation);
 
-    fetch(`${API}/sets`, {
-        method: "POST",
+    const method = currentSetId ? "POST" : "POST";
+    const url = currentSetId ? `${API}/sets/${currentSetId}` : `${API}/sets`;
+    const body = JSON.stringify({ Title: title, Description: description, Score: 0 });
+
+    fetch(url, {
+        method,
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ Title: title, Description: "", Score: 0 })
+        body
     })
         .then(res => res.json())
         .then(data => {
-            const id = data.Set[0].LearningSetID;
+            const id = currentSetId || data.Set[0].LearningSetID;
             return fetch(`${API}/sets/${id}/cards`, {
                 method: "POST",
                 credentials: "include",

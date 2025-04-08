@@ -13,12 +13,24 @@
   </aside>
 
   <main class="main-view">
+    <!-- Topbar mit Suche und Konto -->
+    <div class="topbar">
+      <input id="search-input" type="text" placeholder="Lernset suchen..." oninput="filterSets()">
+      <div class="account" onclick="toggleAccountMenu()">👤</div>
+      <div id="account-menu" class="account-menu hidden">
+        <p id="account-user"></p>
+        <button onclick="logout()">Abmelden</button>
+      </div>
+    </div>
+
+    <!-- Lernset-Übersicht -->
     <section id="overview-section">
       <h1>Meine Lernsets</h1>
       <div id="set-list" class="set-list"></div>
       <p id="no-sets" class="hidden">Keine Lernsets vorhanden.</p>
     </section>
 
+    <!-- Lernset-Details -->
     <section id="detail-section" class="hidden">
       <button class="back-btn" onclick="backToOverview()">⬅ Zurück</button>
       <h2 id="detail-title"></h2>
@@ -27,15 +39,18 @@
       <div class="detail-actions">
         <button onclick="startGame('cards')">Karteikarten</button>
         <button onclick="startGame('match')">Matching</button>
+        <button onclick="startGame('test')">Prüfungsmodus</button>
         <button onclick="editCurrentSet()">Bearbeiten</button>
         <button onclick="deleteCurrentSet()">Löschen</button>
       </div>
     </section>
 
+    <!-- Lernset-Erstellung -->
     <section id="create-section" class="hidden">
       <h2 id="create-step-title">Neues Lernset</h2>
       <div id="create-step-1">
         <input id="new-set-title" type="text" placeholder="Titel eingeben">
+        <input id="new-set-description" type="text" placeholder="Beschreibung (optional)">
         <button onclick="nextCreateStep()">Weiter</button>
       </div>
       <div id="create-step-2" class="hidden">
