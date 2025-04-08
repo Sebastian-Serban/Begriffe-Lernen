@@ -10,13 +10,16 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
             credentials: "include"
         });
 
-        if (!response.ok) throw new Error("Submission failed");
-
-        const result = await response.json();
-        if (result.success) {
-            window.location.href = '../overview/overview.html'
+        if (!response.ok) {
+            throw new Error("Submission failed")
+        } else {
+            const result = await response.json();
+            if (result.success) {
+                window.location.href = '../overview/overview.html'
+            }
+            console.log(result)
         }
-        console.log(result)
+
     } catch (error) {
         console.error("Error:", error);
     }
