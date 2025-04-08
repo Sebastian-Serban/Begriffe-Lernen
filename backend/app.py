@@ -270,6 +270,43 @@ def add_cards(set_id):
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
+@app.route("/sets/<set_id>/cards", methods=["PATCH"])
+def update_cards(set_id):
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        data = request.json
+        learned_cards = data
+
+        cards_infos = supabase.table("User").select("Progress").eq("Email", session["user"]["email"]).execute().data[0]["Progress"]
+
+        card_count = supabase.table("Card").select("*", count="exact").eq("LearningSetID", str(set_id)).execute().count
+
+        if not cards_infos:
+            cards_infos.append({"LearningSetID": set_id, "cards": []})
+
+        for i in cards_infos:
+            if i["LearningSetID"] == set_id:
+                if len(i["cards"]) == card_count:
+                    i["cards"] = []
+                else:
+                    for y in learned_cards:
+                        i["cards"].append(y)
+            break
+
+
+        response = supabase.table("User").update({"Progress": cards_infos}).eq("Email", session["user"]["email"]).execute()
+
+        return jsonify({"success": True, "User": response.data[0]}), 201
+    except Exception:
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
+
+
+
 @app.route("/sets/<set_id>/cards", methods=["GET"])
 def get_cards(set_id):
     try:
@@ -288,7 +325,6 @@ def get_cards(set_id):
         if not cards.data:
             return jsonify({"success": False, "error": "Data not found."}), 404
 
-        print(cards.data)
 
         return jsonify({"success": True, "cards": cards.data}), 200
     except Exception:
