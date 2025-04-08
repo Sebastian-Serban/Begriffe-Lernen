@@ -297,7 +297,6 @@ def update_cards(set_id):
                         i["cards"].append(y)
             break
 
-
         response = supabase.table("User").update({"Progress": cards_infos}).eq("Email", session["user"]["email"]).execute()
 
         return jsonify({"success": True, "User": response.data[0]}), 201
