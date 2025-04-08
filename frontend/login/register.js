@@ -15,6 +15,9 @@ document.getElementById("registerForm").addEventListener("submit", async functio
         }
 
         const result = await response.json();
+        if (result.success) {
+            window.location.href = '../overview/overview.html'
+        }
     } catch (error) {
         console.log("Error: " + error)
     }

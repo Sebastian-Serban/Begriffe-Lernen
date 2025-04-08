@@ -13,6 +13,9 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         if (!response.ok) throw new Error("Submission failed");
 
         const result = await response.json();
+        if (result.success) {
+            window.location.href = '../overview/overview.html'
+        }
         console.log(result)
     } catch (error) {
         console.error("Error:", error);
