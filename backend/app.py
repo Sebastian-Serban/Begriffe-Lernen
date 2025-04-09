@@ -12,6 +12,7 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = os.getenv("SECRET_KEY", "supersecret")
 app.permanent_session_lifetime = timedelta(minutes=30)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")

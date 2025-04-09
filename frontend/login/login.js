@@ -4,7 +4,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const formData = new FormData(this);
 
     try {
-        const response = await fetch("http://127.0.0.1:5000/login", {
+        const response = await fetch("/login", {
             method: "POST",
             body: formData,
             credentials: "include"
