@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     [data[i], data[j]] = [data[j], data[i]];
                 }
 
-
                 let question_number = 0
                 data.forEach((card) => {
                     const div = document.createElement("div")
