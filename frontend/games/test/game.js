@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
         result_container.innerHTML = "";
 
         form_container.innerHTML = "";
-        fetch(`http://127.0.0.1:5000/sets/${(set) ? set : 10}/cards`, {
+        fetch(`/api/sets/${set}/cards`, {
             method: "GET",
             credentials: "include"
         })

@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
     const set = params.get("set");
 
-    const data = await (await fetch(`http://127.0.0.1:5000/sets/${set}/cards`, {
+    const data = await (await fetch(`/api/sets/${set}/cards`, {
         method: "GET",
         credentials: "include"
     })).json()
