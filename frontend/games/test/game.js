@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
         })
             .then(res => res.json())
             .then(result => {
-
                 const data = result.cards
 
                 for (let i = data.length - 1; i > 0; i--) {
