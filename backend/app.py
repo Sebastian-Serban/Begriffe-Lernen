@@ -18,7 +18,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 
-@app.route("api/login", methods=["POST"])
+@app.route("/api/login", methods=["POST"])
 def login():
     if "user" in session:
         return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
@@ -45,7 +45,7 @@ def login():
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
-@app.route("api/register", methods=["POST"])
+@app.route("/api/register", methods=["POST"])
 def register():
     if "user" in session:
         return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
@@ -83,7 +83,7 @@ def register():
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
-@app.route("api/users/<username>", methods=["GET"])
+@app.route("/api/users/<username>", methods=["GET"])
 def get_user(username):
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -102,7 +102,7 @@ def get_user(username):
     except Exception:
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
-@app.route("api/sets", methods=["POST"])
+@app.route("/api/sets", methods=["POST"])
 def add_set():
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -133,7 +133,7 @@ def add_set():
 
 
 
-@app.route("api/users/<user_id>/sets", methods=["GET"])
+@app.route("/api/users/<user_id>/sets", methods=["GET"])
 def get_sets(user_id):
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -156,7 +156,7 @@ def get_sets(user_id):
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
-@app.route("api/sets", methods=["GET"])
+@app.route("/api/sets", methods=["GET"])
 def get_client_sets():
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -179,7 +179,7 @@ def get_client_sets():
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
-@app.route("api/sets/<set_id>", methods=["GET"])
+@app.route("/api/sets/<set_id>", methods=["GET"])
 def get_set(set_id):
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -202,7 +202,7 @@ def get_set(set_id):
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
-@app.route("api/sets/<set_id>", methods=["DELETE"])
+@app.route("/api/sets/<set_id>", methods=["DELETE"])
 def delete_set(set_id):
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -234,7 +234,7 @@ def delete_set(set_id):
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
-@app.route("api/sets/<set_id>/cards", methods=["POST"])
+@app.route("/api/sets/<set_id>/cards", methods=["POST"])
 def add_cards(set_id):
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -271,7 +271,7 @@ def add_cards(set_id):
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
-@app.route("api/sets/<set_id>/cards", methods=["PATCH"])
+@app.route("/api/sets/<set_id>/cards", methods=["PATCH"])
 def update_cards(set_id):
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -307,7 +307,7 @@ def update_cards(set_id):
 
 
 
-@app.route("api/sets/<set_id>/cards", methods=["GET"])
+@app.route("/api/sets/<set_id>/cards", methods=["GET"])
 def get_cards(set_id):
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -331,20 +331,20 @@ def get_cards(set_id):
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
-@app.route("api/logout", methods=["POST"])
+@app.route("/api/logout", methods=["POST"])
 def logout():
     session.pop("user", None)
     return jsonify({"success": True, "message": "Logged out successfully"}), 200
 
 
-@app.route("api/session-check", methods=["GET"])
+@app.route("/api/session-check", methods=["GET"])
 def session_check():
     if "user" in session:
         return jsonify({"success": True, "user": session["user"]}), 200
     return jsonify({"success": False, "error": "No active session"}), 401
 
 
-@app.route("/sets/<set_id>", methods=["POST"])
+@app.route("/api/sets/<set_id>", methods=["POST"])
 def update_set(set_id):
     try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
