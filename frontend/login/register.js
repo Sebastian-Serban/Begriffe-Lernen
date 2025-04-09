@@ -4,7 +4,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     const formData = new FormData(this)
 
     try {
-        const response = await fetch("/register", {
+        const response = await fetch("api/register", {
             method: "POST",
             body: formData,
             credentials: "include"
