@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         credentials: "include"
     })).json()
 
+
     const cards_container = document.getElementsByClassName("cards-wrapper")[0]
 
     console.log(data.cards)
