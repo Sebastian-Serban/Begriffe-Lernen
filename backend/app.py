@@ -293,15 +293,19 @@ def update_cards(set_id):
             if i["LearningSetID"] == set_id:
                 if len(i["cards"]) == card_count:
                     i["cards"] = []
-                else:
-                    for y in learned_cards:
+
+                for y in learned_cards:
+                    if y not in i["cards"]:
                         i["cards"].append(y)
-            break
+
+                if len(i["cards"]) == card_count:
+                    i["cards"] = []
+                break
 
         response = supabase.table("User").update({"Progress": cards_infos}).eq("Email", session["user"]["email"]).execute()
 
         return jsonify({"success": True, "User": response.data[0]}), 201
-    except Exception:
+    except ValueError:
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
