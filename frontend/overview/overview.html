@@ -13,7 +13,6 @@
   </aside>
 
   <main class="main-view">
-    <!-- Topbar mit Suche und Konto -->
     <div class="topbar">
       <input id="search-input" type="text" placeholder="Lernset suchen..." oninput="filterSets()">
       <div class="account" onclick="toggleAccountMenu()">👤</div>
@@ -23,14 +22,12 @@
       </div>
     </div>
 
-    <!-- Lernset-Übersicht -->
     <section id="overview-section">
       <h1>Meine Lernsets</h1>
       <div id="set-list" class="set-list"></div>
       <p id="no-sets" class="hidden">Keine Lernsets vorhanden.</p>
     </section>
 
-    <!-- Lernset-Details -->
     <section id="detail-section" class="hidden">
       <button class="back-btn" onclick="backToOverview()">⬅ Zurück</button>
       <h2 id="detail-title"></h2>
@@ -45,7 +42,6 @@
       </div>
     </section>
 
-    <!-- Lernset-Erstellung -->
     <section id="create-section" class="hidden">
       <h2 id="create-step-title">Neues Lernset</h2>
       <div id="create-step-1">
