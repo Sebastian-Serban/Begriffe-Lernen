@@ -1,10 +1,14 @@
 document.getElementById("loginForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
+    const baseURL = window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:5000"
+    : "";
+
     const formData = new FormData(this);
 
     try {
-        const response = await fetch("/api/login", {
+        const response = await fetch(`${baseURL}/api/login`, {
             method: "POST",
             body: formData,
             credentials: "include"

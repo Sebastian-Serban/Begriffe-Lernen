@@ -2,6 +2,10 @@ document.addEventListener("DOMContentLoaded", function (event) {
     const shuffle = [];
     const grid_cards = [];
 
+    const baseURL = window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:5000"
+    : "";
+
     const gamestate = {
         selected_cards: [],
         time: "0.00s",
@@ -33,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
             const params = new URLSearchParams(window.location.search);
             const set = params.get("set");
 
-            fetch(`/api/sets/${set}/cards`, {
+            fetch(`${baseURL}/api/sets/${set}/cards`, {
                 method: "GET",
                 credentials: "include"
             })

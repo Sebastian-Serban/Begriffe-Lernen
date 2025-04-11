@@ -80,7 +80,6 @@ button {
     background-color: var(--secondary);
 }
 
-/* 🔄 Mobile Optimierung */
 @media (max-width: 768px) {
     h1 {
         font-size: 2.5rem;
