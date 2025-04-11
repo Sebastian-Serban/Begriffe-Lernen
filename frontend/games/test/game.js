@@ -2,6 +2,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const set = params.get("set");
 
+    const baseURL = window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:5000"
+    : "";
+
     const form_container = document.getElementsByClassName("form-container")[0]
 
     const start_button = document.getElementById("startExam")
@@ -11,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
         result_container.innerHTML = "";
 
         form_container.innerHTML = "";
-        fetch(`http://127.0.0.1:5000/sets/${(set) ? set : 10}/cards`, {
+        fetch(`${baseURL}/api/sets/${set}/cards`, {
             method: "GET",
             credentials: "include"
         })

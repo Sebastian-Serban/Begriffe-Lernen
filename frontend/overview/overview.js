@@ -1,6 +1,8 @@
 let currentSetId = null;
 let allSets = [];
-const API = "http://127.0.0.1:5000";
+const baseURL = window.location.hostname === "127.0.0.1"
+  ? "http://127.0.0.1:5000"
+  : "";
 
 function showSection(id) {
     document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
@@ -8,7 +10,7 @@ function showSection(id) {
 }
 
 function loadSets() {
-    fetch(`${API}/sets`, { credentials: "include" })
+    fetch(`${baseURL}/api/sets`, { credentials: "include" })
         .then(res => res.json())
         .then(data => {
             allSets = data.sets || [];
@@ -45,7 +47,7 @@ function toggleAccountMenu() {
 }
 
 function loadSessionUser() {
-    fetch(`${API}/session-check`, { credentials: "include" })
+    fetch(`${baseURL}/api/session-check`, { credentials: "include" })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
@@ -55,7 +57,7 @@ function loadSessionUser() {
 }
 
 function logout() {
-    fetch(`${API}/logout`, { method: "POST", credentials: "include" })
+    fetch(`${baseURL}/api/logout`, { method: "POST", credentials: "include" })
         .then(() => window.location.href = "../index.html");
 }
 
@@ -63,7 +65,7 @@ function showSetDetail(id, title, description) {
     currentSetId = id;
     document.getElementById("detail-title").textContent = title;
     document.getElementById("detail-description").textContent = description;
-    fetch(`${API}/sets/${id}/cards`, { credentials: "include" })
+    fetch(`${baseURL}/api/sets/${id}/cards`, { credentials: "include" })
         .then(res => res.json())
         .then(data => {
             const list = document.getElementById("card-list");
@@ -91,7 +93,7 @@ function startGame(mode) {
 
 function deleteCurrentSet() {
     if (!confirm("Wirklich löschen?")) return;
-    fetch(`${API}/sets/${currentSetId}`, {
+    fetch(`${baseURL}/api/sets/${currentSetId}`, {
         method: "DELETE",
         credentials: "include"
     })
@@ -102,7 +104,7 @@ function deleteCurrentSet() {
 }
 
 function editCurrentSet() {
-    fetch(`${API}/sets/${currentSetId}/cards`, { credentials: "include" })
+    fetch(`${baseURL}/api/sets/${currentSetId}/cards`, { credentials: "include" })
         .then(res => res.json())
         .then(data => {
             document.getElementById("new-set-title").value = document.getElementById("detail-title").textContent;
@@ -159,7 +161,7 @@ function saveNewSet() {
     }).filter(c => c.Term && c.Explanation);
 
     const method = currentSetId ? "POST" : "POST";
-    const url = currentSetId ? `${API}/sets/${currentSetId}` : `${API}/sets`;
+    const url = currentSetId ? `${baseURL}/api/sets/${currentSetId}` : `${baseURL}/api/sets`;
     const body = JSON.stringify({ Title: title, Description: description, Score: 0 });
 
     fetch(url, {
@@ -171,7 +173,7 @@ function saveNewSet() {
         .then(res => res.json())
         .then(data => {
             const id = currentSetId || data.Set[0].LearningSetID;
-            return fetch(`${API}/sets/${id}/cards`, {
+            return fetch(`${baseURL}/api/sets/${id}/cards`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },

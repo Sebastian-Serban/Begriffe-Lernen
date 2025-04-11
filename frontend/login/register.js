@@ -3,8 +3,12 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 
     const formData = new FormData(this)
 
+    const baseURL = window.location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:5000"
+    : ""
+
     try {
-        const response = await fetch("http://127.0.0.1:5000/register", {
+        const response = await fetch(`${baseURL}/api/register`, {
             method: "POST",
             body: formData,
             credentials: "include"
