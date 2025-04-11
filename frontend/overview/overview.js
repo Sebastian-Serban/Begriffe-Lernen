@@ -19,7 +19,6 @@ function loadSets() {
         });
 }
 
-
 function displaySets(sets) {
     const list = document.getElementById("set-list");
     list.innerHTML = "";
