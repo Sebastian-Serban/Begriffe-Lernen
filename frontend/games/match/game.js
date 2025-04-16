@@ -1,11 +1,7 @@
 document.addEventListener("DOMContentLoaded", function (event) {
     const shuffle = [];
     const grid_cards = [];
-
-    const baseURL = window.location.hostname === "127.0.0.1"
-    ? "http://127.0.0.1:5000"
-    : "";
-
+    const baseURL = window.location.hostname === "127.0.0.1" ? "http://127.0.0.1:5000" : "";
     const gamestate = {
         selected_cards: [],
         time: "0.00s",
@@ -17,7 +13,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
         startTimer() {
             this.startTime = Date.now();
             const timerDisplay = document.getElementById("timer");
-
             this.timerInterval = setInterval(() => {
                 const elapsed = (Date.now() - this.startTime) / 1000;
                 this.time = elapsed.toFixed(2) + "s";
@@ -44,31 +39,22 @@ document.addEventListener("DOMContentLoaded", function (event) {
             .then(res => res.json())
             .then(result => {
                 let availableCards = result.cards.slice();
-                const cardcounts = (window.innerWidth < 480) ? 4 : 5
-                if (availableCards.length > cardcounts) {
-                    while (availableCards.length > cardcounts) {
-                        availableCards.splice(Math.floor(Math.random() * availableCards.length), 1);
-                    }
-                }
-                const totalPairs = availableCards.length;
-                const totalItems = totalPairs * 2;
-
+                let cardCount = 6;
                 let columns = 4;
-                if (window.innerWidth < 480) {
-                    columns = 2;
-                } else if (window.innerWidth < 768) {
-                    columns = 3;
-                } else if (window.innerWidth < 1024) {
-                    columns = 4;
-                }
-                const rows = Math.ceil(totalItems / columns);
 
-                const gridCapacity = rows * columns;
+                if (window.innerWidth <= 1024 && window.innerWidth > 768) {
+                    cardCount = 6;
+                    columns = 3;
+                } else if (window.innerWidth <= 768) {
+                    cardCount = 4;
+                    columns = 2;
+                }
+
+                while (availableCards.length > cardCount) {
+                    availableCards.splice(Math.floor(Math.random() * availableCards.length), 1);
+                }
 
                 const grid = document.getElementsByClassName("grid")[0];
-                grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-                grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-
                 while (grid.firstChild) grid.removeChild(grid.firstChild);
                 shuffle.length = 0;
                 grid_cards.length = 0;
@@ -81,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
                     self.matches.push({ Term: card.Term, Explanation: card.Explanation });
                 });
 
-                while (shuffle.length < gridCapacity) {
+                while (shuffle.length < cardCount * 2) {
                     shuffle.push("");
                 }
 
@@ -89,6 +75,11 @@ document.addEventListener("DOMContentLoaded", function (event) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [shuffle[i], shuffle[j]] = [shuffle[j], shuffle[i]];
                 }
+
+                const totalItems = shuffle.length;
+                const rows = Math.ceil(totalItems / columns);
+                grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+                grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
                 shuffle.forEach((cardText) => {
                     const div = document.createElement('div');
@@ -124,7 +115,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
         getmatches() {
             const [card1, card2] = this.selected_cards;
             if (!card1 || !card2) return;
-
             const match = this.matches.find((m) =>
                 [card1.textContent, card2.textContent].includes(m.Term) &&
                 [card1.textContent, card2.textContent].includes(m.Explanation) &&
@@ -165,6 +155,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
     gamestate.setup();
 
+    /*
     document.getElementById("start").addEventListener("click", () => {
         shuffle.length = 0;
         grid_cards.length = 0;
@@ -172,4 +163,5 @@ document.addEventListener("DOMContentLoaded", function (event) {
         gamestate.selected_cards.length = 0;
         gamestate.setup();
     });
+    */
 });
