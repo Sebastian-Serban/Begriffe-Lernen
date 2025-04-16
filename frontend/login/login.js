@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         })
 })
 
+
 document.getElementById("loginForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
