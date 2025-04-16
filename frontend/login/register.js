@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             credentials: 'include'
         }).then((res) => {
             if (res.status === 200) {
-                window.location.href = './overview/overview.html'
+                window.location.href = '../overview/overview.html'
             } else {
                 res.json().then((data) => console.log(data))
             }
