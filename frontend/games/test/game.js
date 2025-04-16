@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const getUsername = async () => {
         const res = await fetch(`${baseURL}/api/session-check`, {
             credentials: 'include'
+        }).catch((error) => {
+            console.log(error)
         });
 
         if (!res.ok) throw new Error('Not logged in');
@@ -19,7 +21,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const res = await fetch(`${baseURL}/api/users/${username}`, {
                 credentials: 'include'
-            });
+            }).catch((error) => {
+                console.log(error)
+            })
 
             if (!res.ok) throw new Error('Failed to get user data');
 
@@ -137,6 +141,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         body: JSON.stringify(learned_cards)
                     })
                 })
+            }).catch((error) => {
+                console.log(error)
             })
     });
 })

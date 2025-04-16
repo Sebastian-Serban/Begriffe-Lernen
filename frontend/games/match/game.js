@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
                 self.startTimer();
             })
             .catch(err => {
-                console.error("Game error:", err);
+                console.error(err);
             });
         },
 

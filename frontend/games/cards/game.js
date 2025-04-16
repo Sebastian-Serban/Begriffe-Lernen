@@ -9,7 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await (await fetch(`${baseURL}/api/sets/${set}/cards`, {
         method: "GET",
         credentials: "include"
-    })).json()
+    })).json().catch((error) => {
+        console.log(error)
+    })
 
     const cards_container = document.getElementsByClassName("cards-wrapper")[0]
 

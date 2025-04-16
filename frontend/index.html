@@ -14,6 +14,26 @@
         <button class="login-btn" onclick="window.location.href='./login/login.html'">Login</button>
         <button class="register-btn" onclick="window.location.href='./login/register.html'">Registrieren</button>
     </div>
+
+    <script>
+        const baseURL = window.location.hostname === "127.0.0.1"
+        ? "http://127.0.0.1:5000"
+        : "";
+
+        fetch(`${baseURL}/api/session-check`, {
+            credentials: 'include'
+        }).then((res) => {
+            if (res.status === 200) {
+                window.location.href = './overview/overview.html'
+            } else {
+                res.json().then((data) => console.log(data))
+            }
+        }).catch((error) => {
+            console.log(error)
+        })
+
+
+    </script>
 </div>
 </body>
 </html>

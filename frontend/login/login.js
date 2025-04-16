@@ -1,9 +1,23 @@
-document.getElementById("loginForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
-
-    const baseURL = window.location.hostname === "127.0.0.1"
+const baseURL = window.location.hostname === "127.0.0.1"
     ? "http://127.0.0.1:5000"
     : "";
+
+document.addEventListener("DOMContentLoaded", async () => {
+    fetch(`${baseURL}/api/session-check`, {
+            credentials: 'include'
+        }).then((res) => {
+            if (res.status === 200) {
+                window.location.href = './overview/overview.html'
+            } else {
+                res.json().then((data) => console.log(data))
+            }
+        }).catch((error) => {
+            console.log(error)
+        })
+})
+
+document.getElementById("loginForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
 
     const formData = new FormData(this);
 
@@ -12,6 +26,8 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
             method: "POST",
             body: formData,
             credentials: "include"
+        }).catch((error) => {
+            console.log(error)
         });
 
         if (!response.ok) {
