@@ -183,6 +183,7 @@ def get_client_sets():
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 
+
 @app.route("/api/sets/name/<set_title>", methods=["GET"])
 def get_sets_name(set_title):
     try:
