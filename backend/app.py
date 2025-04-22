@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from supabase import create_client
 from flask_cors import CORS
 from datetime import timedelta
+import re
 
 load_dotenv()
 
@@ -91,15 +92,18 @@ def get_user(username):
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
+        regex = (re.escape(username) if len(username) > 3
+                 else r"\m" + re.escape(username))
+
         user = (
             supabase.table("User")
             .select("*")
-            .eq("Username", username)
+            .filter('Username','imatch',regex)
             .execute()
         )
 
         return jsonify({"success": True, "Set": user.data}), 200
-    except Exception:
+    except ValueError:
         return jsonify({"success": False, "error": "Internal server error"}), 500
 
 @app.route("/api/sets", methods=["POST"])
@@ -170,6 +174,28 @@ def get_client_sets():
             .eq("User.Email", session["user"]["email"])
             .execute()
         )
+
+        if not response.data:
+            return jsonify({"success": False, "error": "No sets found."}), 404
+
+        return jsonify({"success": True, "sets": response.data}), 200
+    except Exception:
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
+
+@app.route("/api/sets/name/<set_title>", methods=["GET"])
+def get_sets_name(set_title):
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        regex = (re.escape(set_title) if len(set_title) > 1
+                 else r"\m" + re.escape(set_title))
+
+        response = supabase.table('LearningSet').select('*').filter('Title','imatch',regex).execute()
+
 
         if not response.data:
             return jsonify({"success": False, "error": "No sets found."}), 404
