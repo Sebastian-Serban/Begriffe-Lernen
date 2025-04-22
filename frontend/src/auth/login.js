@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             credentials: 'include'
         }).then((res) => {
             if (res.status === 200) {
-                window.location.href = '../overview/overview.html'
+                window.location.href = '../profile/overview.html'
             } else {
                 res.json().then((data) => console.log(data))
             }
@@ -36,7 +36,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         } else {
             const result = await response.json();
             if (result.success) {
-                window.location.href = '../overview/overview.html'
+                window.location.href = '../profile/overview.html'
             }
             console.log(result)
         }

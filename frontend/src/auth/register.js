@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             credentials: 'include'
         }).then((res) => {
             if (res.status === 200) {
-                window.location.href = '../overview/overview.html'
+                window.location.href = '../profile/overview.html'
             } else {
                 res.json().then((data) => console.log(data))
             }
@@ -36,7 +36,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
 
         const result = await response.json();
         if (result.success) {
-            window.location.href = '../overview/overview.html'
+            window.location.href = '../profile/overview.html'
         }
     } catch (error) {
         console.log("Error: " + error)
