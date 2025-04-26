@@ -58,7 +58,7 @@ function loadSessionUser() {
 
 function logout() {
     fetch(`${baseURL}/api/logout`, { method: "POST", credentials: "include" })
-        .then(() => window.location.href = ".../index.html");
+        .then(() => window.location.href = "/frontend/index.html");
 }
 
 function showSetDetail(id, title, description) {

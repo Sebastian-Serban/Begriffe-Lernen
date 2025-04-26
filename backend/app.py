@@ -1,413 +1,301 @@
 import os
 import hashlib
+import re
+from datetime import timedelta
 from flask import Flask, jsonify, request, session
 from dotenv import load_dotenv
 from supabase import create_client
 from flask_cors import CORS
-from datetime import timedelta
-import re
 
 load_dotenv()
-
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.secret_key = os.getenv("SECRET_KEY", "supersecret")
-app.permanent_session_lifetime = timedelta(minutes=30)
+app.permanent_session_lifetime = timedelta(minutes=90)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-
-@app.route("/api/login", methods=["POST"])
-def login():
-    if "user" in session:
-        return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
-    try:
-        email = request.form.get("email")
-        password = request.form.get("password")
-
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        response = (
-            supabase.table("User")
-            .select("*")
-            .eq("Email", hashlib.sha256(email.encode()).hexdigest())
-            .eq("Password", hashlib.sha256(password.encode()).hexdigest())
-            .execute()
-        )
-
-        if response.data:
-            user = response.data[0]
-            session.permanent = True
-            session["user"] = {"email": user["Email"], "username": user["Username"]}
-            return jsonify({"success": True, "user": user}), 200
-        return jsonify({"success": False, "error": "Invalid credentials"}), 401
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
-
-
 @app.route("/api/register", methods=["POST"])
 def register():
-    if "user" in session:
-        return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
     try:
+        if "user" in session:
+            return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
+
         username = request.form.get("username")
         email = request.form.get("email")
         password = request.form.get("password")
-
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        existing_user = (
-            supabase.table("User")
-            .select("Email")
-            .eq("Email", hashlib.sha256(email.encode()).hexdigest())
-            .execute()
-        )
+        existing_user = supabase.table("User").select("Email").eq("Email", hashlib.sha256(email.encode()).hexdigest()).execute()
 
         if existing_user.data:
             return jsonify({"success": False, "error": "Email already registered"}), 409
 
-        response = (
-            supabase.table("User")
-            .insert({
-                "Username": username,
-                "Email": hashlib.sha256(email.encode()).hexdigest(),
-                "Password": hashlib.sha256(password.encode()).hexdigest()
-            })
-            .execute()
-        )
+        response = supabase.table("User").insert({
+            "Username": username,
+            "Email": hashlib.sha256(email.encode()).hexdigest(),
+            "Password": hashlib.sha256(password.encode()).hexdigest()
+        }).execute()
 
         user = response.data[0]
         session.permanent = True
         session["user"] = {"email": user["Email"], "username": user["Username"]}
-        return jsonify({"success": True, "user": user}), 201
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
 
+        return jsonify({"success": True, "user": user}), 201
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
+
+@app.route("/api/login", methods=["POST"])
+def login():
+    try:
+        if "user" in session:
+            return jsonify({"success": True, "user": session["user"], "message": "Already logged in."}), 200
+
+        email = request.form.get("email")
+        password = request.form.get("password")
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("User").select("*").eq("Email", hashlib.sha256(email.encode()).hexdigest()).eq("Password", hashlib.sha256(password.encode()).hexdigest()).execute()
+
+        if not response.data:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        user = response.data[0]
+        session.permanent = True
+        session["user"] = {"email": user["Email"], "username": user["Username"]}
+
+        return jsonify({"success": True, "user": user}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
+
+@app.route("/api/session-check", methods=["GET"])
+def session_check():
+    try:
+        if "user" in session:
+            return jsonify({"success": True, "user": session["user"]}), 200
+
+        return jsonify({"success": False, "error": "No active session"}), 401
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
+
+@app.route("/api/logout", methods=["POST"])
+def logout():
+    try:
+        session.pop("user", None)
+        return jsonify({"success": True, "message": "Logged out successfully"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
 @app.route("/api/users/<username>", methods=["GET"])
 def get_user(username):
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        regex = (re.escape(username) if len(username) > 3
-                 else r"\m" + re.escape(username))
+        regex = re.escape(username) if len(username) > 3 else r"\m" + re.escape(username)
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("User").select("*").filter("Username","imatch",regex).execute()
 
-        user = (
-            supabase.table("User")
-            .select("*")
-            .filter('Username','imatch',regex)
-            .execute()
-        )
+        return jsonify({"success": True, "User": response.data}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
-        return jsonify({"success": True, "Set": user.data}), 200
-    except ValueError:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
+@app.route("/api/users", methods=["DELETE"])
+def delete_user():
+    try:
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        supabase.table("User").delete().eq("Email", session["user"]["email"]).execute()
+        session.pop("user", None)
+
+        return jsonify({"success": True, "message": "User deleted"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
 @app.route("/api/sets", methods=["POST"])
 def add_set():
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
         data = request.json
-
-        user_id = (
-            supabase.table("User")
-            .select("UserID")
-            .eq("Email", session["user"]["email"])
-            .execute()
-        )
-
-        data["UserID"] = int(user_id.data[0]["UserID"])
-
-        response = (
-            supabase.table("LearningSet")
-            .insert(data)
-            .execute()
-        )
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        user_id = supabase.table("User").select("UserID").eq("Email", session["user"]["email"]).execute().data[0]["UserID"]
+        data["UserID"] = int(user_id)
+        response = supabase.table("LearningSet").insert(data).execute()
 
         return jsonify({"success": True, "Set": response.data}), 201
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
-
-
-
-@app.route("/api/users/<user_id>/sets", methods=["GET"])
-def get_sets(user_id):
-    try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-        if "user" not in session:
-            return jsonify({"success": False, "error": "Invalid credentials"}), 401
-
-        response = (
-            supabase.table("LearningSet")
-            .select("*, User!inner()")
-            .eq("User.UserID", int(user_id))
-            .execute()
-        )
-
-        if not response.data:
-            return jsonify({"success": False, "error": "No sets found."}), 404
-
-        return jsonify({"success": True, "sets": response.data}), 200
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
-
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
 @app.route("/api/sets", methods=["GET"])
 def get_client_sets():
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        response = (
-            supabase.table("LearningSet")
-            .select("*, User!inner()")
-            .eq("User.Email", session["user"]["email"])
-            .execute()
-        )
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("*, User!inner()").eq("User.Email", session["user"]["email"]).execute()
 
         if not response.data:
             return jsonify({"success": False, "error": "No sets found."}), 404
 
         return jsonify({"success": True, "sets": response.data}), 200
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
+@app.route("/api/users/<int:user_id>/sets", methods=["GET"])
+def get_sets(user_id):
+    try:
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("*, User!inner()").eq("User.UserID", user_id).execute()
+
+        if not response.data:
+            return jsonify({"success": False, "error": "No sets found."}), 404
+
+        return jsonify({"success": True, "sets": response.data}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
 @app.route("/api/sets/name/<set_title>", methods=["GET"])
 def get_sets_name(set_title):
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        regex = (re.escape(set_title) if len(set_title) > 1
-                 else r"\m" + re.escape(set_title))
-
-        response = supabase.table('LearningSet').select('*').filter('Title','imatch',regex).execute()
-
+        regex = re.escape(set_title) if len(set_title) > 1 else r"\m" + re.escape(set_title)
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("*").filter("Title","imatch",regex).execute()
 
         if not response.data:
             return jsonify({"success": False, "error": "No sets found."}), 404
 
         return jsonify({"success": True, "sets": response.data}), 200
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
-
-@app.route("/api/sets/<set_id>", methods=["GET"])
+@app.route("/api/sets/<int:set_id>", methods=["GET"])
 def get_set(set_id):
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        response = (
-            supabase.table("LearningSet")
-            .select("*")
-            .eq("LearningSetID", set_id)
-            .execute()
-        )
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("*").eq("LearningSetID", set_id).execute()
 
         if not response.data:
             return jsonify({"success": False, "error": "No sets found."}), 404
 
         return jsonify({"success": True, "sets": response.data[0]}), 200
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
-
-@app.route("/api/sets/<set_id>", methods=["DELETE"])
-def delete_set(set_id):
+@app.route("/api/sets/<int:set_id>", methods=["POST"])
+def update_set(set_id):
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        response = (
-            supabase.table("LearningSet")
-            .select("LearningSetID, User!inner()")
-            .eq("User.Email", session["user"]["email"])
-            .eq("LearningSetID", set_id)
-            .execute()
-        )
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("LearningSetID, User!inner()").eq("LearningSetID", set_id).eq("User.Email", session["user"]["email"]).execute()
 
         if not response.data:
             return jsonify({"success": False, "error": "Forbidden access."}), 403
 
-        response = (
-            supabase.table("LearningSet")
-            .delete()
-            .eq("LearningSetID", set_id)
-            .execute()
-        )
+        data = request.json
+        response = supabase.table("LearningSet").update(data).eq("LearningSetID", set_id).execute()
 
+        return jsonify({"success": True, "set": response.data}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
-        return jsonify({"success": True, "Deleted Set": response.data}), 200
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
-
-
-@app.route("/api/sets/<set_id>/cards", methods=["POST"])
-def add_cards(set_id):
+@app.route("/api/sets/<int:set_id>", methods=["DELETE"])
+def delete_set(set_id):
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        response = (
-            supabase.table("LearningSet")
-            .select("LearningSetID, User!inner()")
-            .eq("User.Email", session["user"]["email"])
-            .eq("LearningSetID", set_id)
-            .execute()
-        )
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("LearningSetID, User!inner()").eq("LearningSetID", set_id).eq("User.Email", session["user"]["email"]).execute()
+
+        if not response.data:
+            return jsonify({"success": False, "error": "Forbidden access."}), 403
+
+        supabase.table("LearningSet").delete().eq("LearningSetID", set_id).execute()
+
+        return jsonify({"success": True, "message": "Deleted Set"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
+
+@app.route("/api/sets/<int:set_id>/cards", methods=["POST"])
+def add_cards(set_id):
+    try:
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("LearningSetID, User!inner()").eq("LearningSetID", set_id).eq("User.Email", session["user"]["email"]).execute()
 
         if not response.data:
             return jsonify({"success": False, "error": "Forbidden access."}), 403
 
         supabase.table("Card").delete().eq("LearningSetID", set_id).execute()
-
         data = request.json
 
-        for i in data:
-            i["LearningSetID"] = set_id
+        for c in data:
+            c["LearningSetID"] = set_id
 
-        response = (
-            supabase.table("Card")
-            .insert(data)
-            .execute()
-        )
+        response = supabase.table("Card").insert(data).execute()
 
         return jsonify({"success": True, "cards": response.data}), 201
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
-
-@app.route("/api/sets/<set_id>/cards", methods=["PATCH"])
+@app.route("/api/sets/<int:set_id>/cards", methods=["PATCH"])
 def update_cards(set_id):
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        data = request.json
-        learned_cards = data
+        learned_cards = request.json
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        progress = supabase.table("User").select("Progress").eq("Email", session["user"]["email"]).execute().data[0]["Progress"] or []
+        total = supabase.table("Card").select("*", count="exact").eq("LearningSetID", set_id).execute().count
 
-        cards_infos = supabase.table("User").select("Progress").eq("Email", session["user"]["email"]).execute().data[0]["Progress"]
-
-        card_count = supabase.table("Card").select("*", count="exact").eq("LearningSetID", str(set_id)).execute().count
-
-        if not cards_infos:
-            cards_infos.append({"LearningSetID": set_id, "cards": []})
-
-        for i in cards_infos:
+        for i in progress:
             if i["LearningSetID"] == set_id:
-                if len(i["cards"]) == card_count:
-                    i["cards"] = []
-
-                for y in learned_cards:
-                    if y not in i["cards"]:
-                        i["cards"].append(y)
-
-                if len(i["cards"]) == card_count:
+                i["cards"] = list(set(i["cards"] + learned_cards))
+                if len(i["cards"]) >= total:
                     i["cards"] = []
                 break
+        else:
+            progress.append({"LearningSetID": set_id, "cards": learned_cards})
 
-        response = supabase.table("User").update({"Progress": cards_infos}).eq("Email", session["user"]["email"]).execute()
+        response = supabase.table("User").update({"Progress": progress}).eq("Email", session["user"]["email"]).execute()
 
         return jsonify({"success": True, "User": response.data[0]}), 201
-    except ValueError:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
-
-
-
-@app.route("/api/sets/<set_id>/cards", methods=["GET"])
+@app.route("/api/sets/<int:set_id>/cards", methods=["GET"])
 def get_cards(set_id):
     try:
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        cards = (
-            supabase.table("Card")
-            .select("*")
-            .eq("LearningSetID", set_id)
-            .execute()
-        )
-
-        if not cards.data:
-            return jsonify({"success": False, "error": "Data not found."}), 404
-
-
-        return jsonify({"success": True, "cards": cards.data}), 200
-    except Exception:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
-
-
-@app.route("/api/logout", methods=["POST"])
-def logout():
-    session.pop("user", None)
-    return jsonify({"success": True, "message": "Logged out successfully"}), 200
-
-
-@app.route("/api/session-check", methods=["GET"])
-def session_check():
-    if "user" in session:
-        return jsonify({"success": True, "user": session["user"]}), 200
-    return jsonify({"success": False, "error": "No active session"}), 401
-
-
-@app.route("/api/sets/<set_id>", methods=["POST"])
-def update_set(set_id):
-    try:
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("Card").select("*").eq("LearningSetID", set_id).execute()
 
-        if "user" not in session:
-            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+        if not response.data:
+            return jsonify({"success": False, "error": "No cards found."}), 404
 
-        data = request.json
-
-        check = (
-            supabase.table("LearningSet")
-            .select("LearningSetID, User!inner()")
-            .eq("LearningSetID", set_id)
-            .eq("User.Email", session["user"]["email"])
-            .execute()
-        )
-
-        if not check.data:
-            return jsonify({"success": False, "error": "Forbidden"}), 403
-
-        update = (
-            supabase.table("LearningSet")
-            .update(data)
-            .eq("LearningSetID", set_id)
-            .execute()
-        )
-
-        return jsonify({"success": True, "set": update.data}), 200
+        return jsonify({"success": True, "cards": response.data}), 200
     except Exception as e:
-        return jsonify({"success": False, "error": "Internal server error"}), 500
-
-
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))

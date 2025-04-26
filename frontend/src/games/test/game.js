@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
-    const set = params.get("set");
+    const set = parseInt(params.get("set"));
 
     const getUsername = async () => {
         const res = await fetch(`${baseURL}/api/session-check`, {
@@ -28,14 +28,15 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error('Failed to get user data');
 
             const data = res.json().then((data => {
-                const user = data.Set[0]
+                const user = data.User[0]
                 const progress = user.Progress
                 for (let i = 0; i < progress.length; i++) {
-                    if (progress[i].LearningSetID === String(set)) {
+                    if (progress[i].LearningSetID === set) {
+                        console.log(progress[0].cards)
                         return progress[0].cards
                     }
                 }
-            }))
+                }))
 
             return data
 
