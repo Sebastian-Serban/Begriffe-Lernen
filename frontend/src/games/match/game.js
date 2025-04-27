@@ -1,7 +1,17 @@
-document.addEventListener("DOMContentLoaded", function (event) {
+document.addEventListener("DOMContentLoaded", async function (event) {
     const shuffle = [];
     const grid_cards = [];
     const baseURL = window.location.hostname === "127.0.0.1" ? "http://127.0.0.1:5000" : "";
+    const params = new URLSearchParams(window.location.search);
+    const set = params.get("set");
+    const personal_best = await fetch(`${baseURL}/api/sets/${set}`, {
+        method: "GET",
+        credentials: "include"
+    }).then(res => res.json()).then(result => {
+        console.log(result)
+        return result.set.Score
+    });
+
     const gamestate = {
         selected_cards: [],
         time: "0.00s",
@@ -29,87 +39,85 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
         setup() {
             const self = this;
-            const params = new URLSearchParams(window.location.search);
-            const set = params.get("set");
 
             fetch(`${baseURL}/api/sets/${set}/cards`, {
                 method: "GET",
                 credentials: "include"
             })
-            .then(res => res.json())
-            .then(result => {
-                let availableCards = result.cards.slice();
-                let cardCount = 6;
-                let columns = 4;
+                .then(res => res.json())
+                .then(result => {
+                    let availableCards = result.cards.slice();
+                    let cardCount = 6;
+                    let columns = 4;
 
-                if (window.innerWidth <= 1024 && window.innerWidth > 768) {
-                    cardCount = 6;
-                    columns = 3;
-                } else if (window.innerWidth <= 768) {
-                    cardCount = 4;
-                    columns = 2;
-                }
-
-                while (availableCards.length > cardCount) {
-                    availableCards.splice(Math.floor(Math.random() * availableCards.length), 1);
-                }
-
-                const grid = document.getElementsByClassName("grid")[0];
-                while (grid.firstChild) grid.removeChild(grid.firstChild);
-                shuffle.length = 0;
-                grid_cards.length = 0;
-                self.matches.length = 0;
-                self.selected_cards.length = 0;
-
-                availableCards.forEach(card => {
-                    shuffle.push(card.Term);
-                    shuffle.push(card.Explanation);
-                    self.matches.push({ Term: card.Term, Explanation: card.Explanation });
-                });
-
-                while (shuffle.length < cardCount * 2) {
-                    shuffle.push("");
-                }
-
-                for (let i = shuffle.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffle[i], shuffle[j]] = [shuffle[j], shuffle[i]];
-                }
-
-                const totalItems = shuffle.length;
-                const rows = Math.ceil(totalItems / columns);
-                grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-                grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-
-                shuffle.forEach((cardText) => {
-                    const div = document.createElement('div');
-                    if (!cardText) {
-                        div.style.visibility = "hidden";
+                    if (window.innerWidth <= 1024 && window.innerWidth > 768) {
+                        cardCount = 6;
+                        columns = 3;
+                    } else if (window.innerWidth <= 768) {
+                        cardCount = 4;
+                        columns = 2;
                     }
-                    div.textContent = cardText;
-                    div.className = 'grid-item';
 
-                    div.addEventListener("click", (event) => {
-                        if (self.isAnimating) return;
-                        if (self.selected_cards.length < 2) {
-                            div.style.animation = "selectOnce 0.2s ease forwards";
-                            self.selected_cards.push(event.target);
-                        }
-                        if (self.selected_cards.length === 2) {
-                            self.isAnimating = true;
-                            self.getmatches();
-                        }
+                    while (availableCards.length > cardCount) {
+                        availableCards.splice(Math.floor(Math.random() * availableCards.length), 1);
+                    }
+
+                    const grid = document.getElementsByClassName("grid")[0];
+                    while (grid.firstChild) grid.removeChild(grid.firstChild);
+                    shuffle.length = 0;
+                    grid_cards.length = 0;
+                    self.matches.length = 0;
+                    self.selected_cards.length = 0;
+
+                    availableCards.forEach(card => {
+                        shuffle.push(card.Term);
+                        shuffle.push(card.Explanation);
+                        self.matches.push({Term: card.Term, Explanation: card.Explanation});
                     });
 
-                    grid_cards.push(div);
-                    grid.appendChild(div);
-                });
+                    while (shuffle.length < cardCount * 2) {
+                        shuffle.push("");
+                    }
 
-                self.startTimer();
-            })
-            .catch(err => {
-                console.error(err);
-            });
+                    for (let i = shuffle.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffle[i], shuffle[j]] = [shuffle[j], shuffle[i]];
+                    }
+
+                    const totalItems = shuffle.length;
+                    const rows = Math.ceil(totalItems / columns);
+                    grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+                    grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+                    shuffle.forEach((cardText) => {
+                        const div = document.createElement('div');
+                        if (!cardText) {
+                            div.style.visibility = "hidden";
+                        }
+                        div.textContent = cardText;
+                        div.className = 'grid-item';
+
+                        div.addEventListener("click", (event) => {
+                            if (self.isAnimating) return;
+                            if (self.selected_cards.length < 2) {
+                                div.style.animation = "selectOnce 0.2s ease forwards";
+                                self.selected_cards.push(event.target);
+                            }
+                            if (self.selected_cards.length === 2) {
+                                self.isAnimating = true;
+                                self.getmatches();
+                            }
+                        });
+
+                        grid_cards.push(div);
+                        grid.appendChild(div);
+                    });
+
+                    self.startTimer();
+                })
+                .catch(err => {
+                    console.error(err);
+                });
         },
 
         getmatches() {
@@ -124,15 +132,41 @@ document.addEventListener("DOMContentLoaded", function (event) {
             if (match) {
                 card1.style.animation = "correctAnswer 0.2s ease forwards";
                 card2.style.animation = "correctAnswer 0.2s ease forwards";
-                setTimeout(() => {
+                setTimeout(async () => {
                     card1.style.visibility = "hidden";
                     card2.style.visibility = "hidden";
                     this.matches.splice(this.matches.indexOf(match), 1);
                     this.selected_cards = [];
                     this.isAnimating = false;
                     if (this.matches.length === 0) {
+                        const restartBtn = document.createElement('button');
+                        restartBtn.textContent = 'Neu starten';
+                        restartBtn.style.position = 'fixed';
+                        restartBtn.style.bottom = '20px';
+                        restartBtn.style.left = '50%';
+                        restartBtn.style.transform = 'translateX(-50%)';
+                        restartBtn.style.padding = '10px 20px';
+                        restartBtn.addEventListener('click', () => {
+                            restartBtn.remove();
+                            this.setup();
+                        });
+                        document.body.appendChild(restartBtn);
+
+
                         this.stopTimer();
                         alert("You win. Time: " + this.time);
+                        const parsed_time = parseFloat(this.time.substring(0, this.time.length - 1));
+                        if (personal_best > parsed_time) {
+                            await fetch(`${baseURL}/api/sets/${set}`, {
+                                method: "POST",
+                                credentials: "include",
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({"Score": parsed_time})
+                            });
+                        }
+
                         this.time = "0.00s";
                         shuffle.length = 0;
                         grid_cards.length = 0;
@@ -154,14 +188,4 @@ document.addEventListener("DOMContentLoaded", function (event) {
     };
 
     gamestate.setup();
-
-    /*
-    document.getElementById("start").addEventListener("click", () => {
-        shuffle.length = 0;
-        grid_cards.length = 0;
-        gamestate.matches.length = 0;
-        gamestate.selected_cards.length = 0;
-        gamestate.setup();
-    });
-    */
 });

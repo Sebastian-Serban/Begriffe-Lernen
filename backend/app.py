@@ -190,7 +190,7 @@ def get_set(set_id):
         if not response.data:
             return jsonify({"success": False, "error": "No sets found."}), 404
 
-        return jsonify({"success": True, "sets": response.data[0]}), 200
+        return jsonify({"success": True, "set": response.data[0]}), 200
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
