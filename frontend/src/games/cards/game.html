@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Begriffe Lernen</title>
+    <title>Karteikarten</title>
     <link rel="stylesheet" href="styles.css">
-    <script defer src="game.js"></script>
 </head>
 <body>
 <div class="container">
     <div class="title">
         <h1>Karteikarten!</h1>
-        <p>Überprufe dein Wissen über die Begriffe!</p>
+        <p>Überprüfe dein Wissen über die Begriffe!</p>
     </div>
     <div id="game-container">
-        <button class="prev">←</button>
+        <button class="prev" aria-label="Vorherige Karte">←</button>
         <div class="cards-wrapper"></div>
-        <button class="next">→</button>
+        <button class="next" aria-label="Nächste Karte">→</button>
     </div>
+    <button class="back-btn">← Zurück</button>
 </div>
+<script defer src="game.js"></script>
+<script>
+    document.querySelector('.back-btn').addEventListener('click', () => window.history.back());
+</script>
 </body>
 </html>
