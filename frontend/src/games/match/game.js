@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", async function (event) {
                             });
                         }
 
+
                         this.time = "0.00s";
                         shuffle.length = 0;
                         grid_cards.length = 0;
