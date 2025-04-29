@@ -297,5 +297,19 @@ def get_cards(set_id):
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
+@app.route("/api/allsets", methods=["GET"])
+def get_all_sets():
+    try:
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("*").execute()
+
+        return jsonify({"success": True, "sets": response.data}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))

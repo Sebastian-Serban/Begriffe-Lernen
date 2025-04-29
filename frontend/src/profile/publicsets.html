@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öffentliche Lernsets</title>
+    <link rel="stylesheet" href="../profile/styles.css">
+</head>
+<body>
+<div class="layout">
+    <main class="main-view">
+        <div class="topbar">
+            <input id="search-input" type="text" placeholder="Lernsets oder Benutzer suchen..." oninput="searchPublicSets()">
+            <div class="account" onclick="window.location.href='../profile/overview.html'">Zurück</div>
+        </div>
+
+        <section id="publicsets-section">
+            <h1>Öffentliche Lernsets</h1>
+            <div id="public-set-list" class="set-list"></div>
+            <p id="no-publicsets" class="hidden">Keine Lernsets gefunden.</p>
+        </section>
+
+        <section id="detail-section" class="hidden">
+            <button class="back-btn" onclick="backToPublicOverview()">⬅ Zurück</button>
+            <h2 id="detail-title"></h2>
+            <p id="detail-description"></p>
+            <div id="card-list"></div>
+            <div class="detail-actions">
+                <button onclick="startPublicGame('cards')">Karteikarten</button>
+                <button onclick="startPublicGame('match')">Matching</button>
+                <button onclick="startPublicGame('test')">Prüfungsmodus</button>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="publicsets.js"></script>
+</body>
+</html>

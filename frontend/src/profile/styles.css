@@ -229,6 +229,22 @@ button:hover {
     display: none;
 }
 
+.publicsets-btn {
+    padding: 1rem 2rem;
+    background-color: var(--accent);
+    color: var(--light);
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.publicsets-btn:hover {
+    background-color: var(--primary);
+}
+
+
 @media (max-width: 768px) {
     .sidebar {
         display: none !important;

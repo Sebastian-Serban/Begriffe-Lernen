@@ -14,7 +14,9 @@
 
   <main class="main-view">
     <div class="topbar">
-      <input id="search-input" type="text" placeholder="Lernset suchen..." oninput="filterSets()">
+      <button class="publicsets-btn" onclick="window.location.href='../profile/publicsets.html'">
+        Öffentliche Lernsets
+      </button>
       <div class="account" onclick="toggleAccountMenu()">👤</div>
       <div id="account-menu" class="account-menu hidden">
         <p id="account-user"></p>
