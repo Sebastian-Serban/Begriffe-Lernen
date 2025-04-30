@@ -131,9 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Lösungen anzeigen" : "Lösungen ausblenden";
             });
 
-
-            document.getElementById("startExam").style.display = "none";
-
         } catch (err) {
             console.error(err);
             resultContainer.innerHTML = `
