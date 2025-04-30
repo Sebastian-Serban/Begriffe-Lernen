@@ -117,7 +117,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: JSON.stringify(learnedNow.map(n => Number(n)))
                 });
 
-                document.getElementById("startExam").style.display = "none";
             });
 
             showSolutionsButton.addEventListener("click", () => {
