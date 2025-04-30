@@ -1,3 +1,9 @@
+:root {
+    --primary-bg: #E0E1DD;
+    --button-bg: #778DA9;
+    --dark-accent: #0D1B2A;
+}
+
 body, html {
     margin: 0;
     padding: 0;
@@ -9,8 +15,7 @@ body, html {
     justify-content: center;
     flex-direction: column;
     font-size: clamp(14px, 1vw, 18px);
-    background-color: #1B263B;
-    color: #E0E1DD;
+    background-color: var(--primary-bg);
 }
 
 #timer {
@@ -28,7 +33,6 @@ body, html {
     align-items: center;
 }
 
-
 #game-container {
     margin-top: 0;
     width: 90%;
@@ -39,7 +43,6 @@ body, html {
     justify-content: center;
 }
 
-
 .grid {
     width: 100%;
     height: 100%;
@@ -47,19 +50,20 @@ body, html {
     gap: 1rem;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: auto;
+    padding-top: 2rem;
 }
 
 .grid-item {
     aspect-ratio: 1.5 / 1;
-    border: 1px solid lightgray;
+    border: 2px solid var(--dark-accent);
     border-radius: 15px;
-    background: #1d1d7d;
+    background: var(--button-bg);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: clamp(1.5rem, 2.5vw, 2rem);
 }
-
 
 @keyframes selectOnce {
     0% {
@@ -100,7 +104,6 @@ body, html {
     }
 }
 
-
 .button-group {
     margin-top: 20px;
 }
@@ -113,10 +116,9 @@ button {
     font-size: 16px;
     border-radius: 5px;
     width: 60%;
-    background-color: #778DA9;
-    color: #0D1B2A;
+    background-color: var(--button-bg);
+    color: var(--dark-accent);
 }
-
 
 @media (max-width: 768px) {
     #game-container {
@@ -124,7 +126,6 @@ button {
         height: auto;
         padding: 10px;
     }
-
 
     .grid {
         grid-template-columns: repeat(2, 1fr);
@@ -139,6 +140,12 @@ button {
     button {
         width: 80%;
         font-size: 14px;
+    }
+
+    .back-btn {
+        position: static;
+        margin-bottom: 1rem;
+        align-self: flex-start;
     }
 }
 
@@ -175,5 +182,36 @@ button {
         margin: 8px;
         width: 90%;
         font-size: 14px;
+    }
+}
+
+.back-btn {
+    margin-bottom: 2rem;
+    background-color: var(--primary-bg);
+    color: var(--text);
+    border: 2px solid var(--dark-accent);
+    border-radius: 6px;
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+    transition: all 0.2s ease;
+    width: auto;
+}
+
+.back-btn:hover {
+    background-color: var(--dark-accent);
+    color: var(--primary-bg);
+}
+
+
+@media (max-width: 768px) {
+    .back-btn {
+        position: static;
+        margin-bottom: 1rem;
+        align-self: flex-start;
     }
 }

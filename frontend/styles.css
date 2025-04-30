@@ -49,14 +49,15 @@ p {
     gap: 1.5rem;
 }
 
-button {
+.button-group button {
+    width: 180px;
+    box-sizing: border-box;
     font-size: 1.25rem;
     padding: 1rem 2.5rem;
     border-radius: 12px;
     border: 2px solid var(--primary);
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: 150px;
 }
 
 .login-btn {
@@ -89,7 +90,7 @@ button {
         font-size: 1.2rem;
     }
 
-    button {
+    .button-group button {
         width: 100%;
         max-width: 300px;
         padding: 1rem;

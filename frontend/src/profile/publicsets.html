@@ -9,9 +9,11 @@
 <body>
 <div class="layout">
     <main class="main-view">
+        <div class="back-btn-wrapper">
+            <button class="back-btn" onclick="window.location.href='../profile/overview.html'">← Zurück</button>
+        </div>
         <div class="topbar">
             <input id="search-input" type="text" placeholder="Lernsets oder Benutzer suchen..." oninput="searchPublicSets()">
-            <div class="account" onclick="window.location.href='../profile/overview.html'">Zurück</div>
         </div>
 
         <section id="publicsets-section">
@@ -21,7 +23,7 @@
         </section>
 
         <section id="detail-section" class="hidden">
-            <button class="back-btn" onclick="backToPublicOverview()">⬅ Zurück</button>
+            <button class="back-btn" onclick="backToPublicOverview()">← Zurück</button>
             <h2 id="detail-title"></h2>
             <p id="detail-description"></p>
             <div id="card-list"></div>

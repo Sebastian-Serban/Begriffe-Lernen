@@ -8,12 +8,15 @@
     <script src="game.js"></script>
 </head>
 <body>
-
+<button class="back-btn">← Zurück</button>
 <div id="timer">Zeit: 0.00s</div>
 <div class="container">
     <div id="game-container">
         <div class="grid"></div>
     </div>
 </div>
+<script>
+    document.querySelector('.back-btn').addEventListener('click', () => window.history.back());
+</script>
 </body>
 </html>
