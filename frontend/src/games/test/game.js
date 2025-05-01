@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to get user data');
         const data = await res.json();
-        const user = data.User || {};
+        const user = data || {};
         console.log(user);
         const entry = (user.Progress || []).find(e => Number(e.LearningSetID) === setId);
         return (entry?.cards || []).map(id => Number(id));
