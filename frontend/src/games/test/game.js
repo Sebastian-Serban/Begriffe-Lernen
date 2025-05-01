@@ -12,23 +12,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function getUserProgress() {
-        const username = await getUsername();
-        const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
-        if (!res.ok) throw new Error('Failed to get user data');
-        const data = await res.json();
-        const user = data.User[0] || {};
-        const entry = (user.Progress || []).find(e => Number(e.LearningSetID) === setId);
-        return (entry?.cards || []).map(id => Number(id));
+        try {
+            const username = await getUsername();
+            const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to get user data');
+            const data = await res.json();
+            const user = data.User[0] || {};
+            console.log('User Data:', user);
+            console.log('Progress Data:', user.Progress);
+            console.log('SetId being searched for:', setId);
+
+            const entry = (user.Progress || []).find(e => {
+                console.log('Comparing:', {
+                    progressId: e.LearningSetID,
+                    progressIdType: typeof e.LearningSetID,
+                    setId: setId,
+                    setIdType: typeof setId
+                });
+                return Number(e.LearningSetID) === setId;
+            });
+
+            console.log('Found Entry:', entry);
+            const result = (entry?.cards || []).map(id => Number(id));
+            console.log('Returned Cards:', result);
+            return result;
+        } catch (error) {
+            console.error('Error in getUserProgress:', error);
+            return [];
+        }
     }
 
     document.getElementById("startExam").addEventListener("click", async () => {
         try {
             const knownCards = await getUserProgress();
+            console.log('Known Cards:', knownCards);
+
             const res = await fetch(`${baseURL}/api/sets/${setId}/cards`, { credentials: 'include' });
             if (!res.ok) throw new Error('Failed to load cards');
             let { cards } = await res.json();
+            console.log('All Cards:', cards);
 
-            cards = cards.filter(card => !knownCards.includes(Number(card.CardID)));
+            cards = cards.filter(card => {
+                const cardId = Number(card.CardID);
+                console.log('Checking Card:', {
+                    cardId: cardId,
+                    isKnown: knownCards.includes(cardId)
+                });
+                return !knownCards.includes(cardId);
+            });
+
+            console.log('Filtered Cards:', cards);
             currentCards = cards;
 
             if (cards.length > 10) {
@@ -110,12 +143,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     showSolutionsButton.style.display = "block";
                 }
 
-                await fetch(`${baseURL}/api/sets/${setId}/cards`, {
+                console.log('Sending learned cards to backend:', learnedNow);
+                const updateResponse = await fetch(`${baseURL}/api/sets/${setId}/cards`, {
                     method: "PATCH",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({"cards": learnedNow.map(n => Number(n))})
                 });
+
+                if (!updateResponse.ok) {
+                    console.error('Failed to update progress:', await updateResponse.text());
+                } else {
+                    console.log('Progress updated successfully');
+                }
             });
 
             showSolutionsButton.addEventListener("click", () => {
@@ -128,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
         } catch (err) {
-            console.error(err);
+            console.error('Error in startExam:', err);
             resultContainer.innerHTML = `
                 <div class="error-message">
                     Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.
