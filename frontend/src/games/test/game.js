@@ -12,15 +12,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function getUserProgress() {
-        const username = await getUsername();
-        const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
-        if (!res.ok) throw new Error('Failed to get user data');
-        const data = await res.json();
-        const user = data.User[0] || {};
-        const entry = (user.Progress || []).find(e => Number(e.LearningSetID) === Number(setId));
-        console.log(entry);
-        return (entry?.cards || []).map(id => Number(id));
+        try {
+            const username = await getUsername();
+            console.log("Username:", username);
+
+            const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
+            console.log("Response status:", res.status);
+
+            if (!res.ok) throw new Error('Failed to get user data');
+
+            const data = await res.json();
+            console.log("API response data:", data);
+
+            const user = data.User[0] || {};
+            console.log("User data:", user);
+
+            const progress = user.Progress || [];
+            console.log("Progress array:", progress);
+
+            const entry = progress.find(e => Number(e.LearningSetID) === Number(setId));
+            console.log("Found entry:", entry);
+
+            const knownCards = (entry?.cards || []).map(id => Number(id));
+            console.log("Known cards:", knownCards);
+
+            return knownCards;
+        } catch (error) {
+            console.error("Error in getUserProgress:", error);
+            return [];
+        }
     }
+
 
     document.getElementById("startExam").addEventListener("click", async () => {
         try {
