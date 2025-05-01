@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!res.ok) throw new Error('Failed to get user data');
         const data = await res.json();
         const user = data.User[0] || {};
-        const entry = (user.Progress || []).find(e => e.LearningSetID === setId);
+        const entry = (user.Progress || []).find(e => Number(e.LearningSetID) === Number(setId));
         return (entry?.cards || []).map(id => Number(id));
     }
 
