@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!res.ok) throw new Error('Failed to get user data');
         const data = await res.json();
         const user = data.User[0] || {};
-        const entry = (user.Progress || []).find(e => e.LearningSetID === setId);
+        const entry = (user.Progress || []).find(e => Number(e.LearningSetID) === setId);
         return (entry?.cards || []).map(id => Number(id));
     }
 
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error('Failed to load cards');
             let { cards } = await res.json();
 
-            cards = cards.filter(card => !knownCards.includes(card.CardID));
+            cards = cards.filter(card => !knownCards.includes(Number(card.CardID)));
             currentCards = cards;
 
             if (cards.length > 10) {
@@ -116,19 +116,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({"cards": learnedNow.map(n => Number(n))})
                 });
-
             });
 
             showSolutionsButton.addEventListener("click", () => {
                 const solutions = form.querySelectorAll(".solution");
                 const isShowing = solutions[0].style.display === "block";
-
                 solutions.forEach(solution => {
                     solution.style.display = isShowing ? "none" : "block";
                 });
-
-                showSolutionsButton.textContent = isShowing ?
-                    "Lösungen anzeigen" : "Lösungen ausblenden";
+                showSolutionsButton.textContent = isShowing ? "Lösungen anzeigen" : "Lösungen ausblenden";
             });
 
         } catch (err) {
