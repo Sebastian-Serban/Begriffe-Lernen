@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const setId = parseInt(params.get("set"), 10);
-    const baseURL = window.location.hostname === "127.0.0.1" ? "http://127.0.0.1:5000" : "https://begriffe-lernen-backend.vercel.app";
+    const baseURL = window.location.hostname === "127.0.0.1" ? "http://127.0.0.1:5000" : "";
     let currentCards = [];
 
     async function getUsername() {
@@ -12,19 +12,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function getUserProgress() {
-        try {
-            const username = await getUsername();
-            const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
-            if (!res.ok) throw new Error('Failed to get user data');
-            const data = await res.json();
-            const user = data.User[0] || {};
-            const progress = user.Progress || [];
-            const entry = progress.find(e => Number(e.LearningSetID) === setId);
-            return entry ? entry.cards.map(id => Number(id)) : [];
-        } catch (error) {
-            console.error('Error in getUserProgress:', error);
-            return [];
-        }
+        const username = await getUsername();
+        const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to get user data');
+        const data = await res.json();
+        const user = data.User[0] || {};
+        const entry = (user.Progress || []).find(e => e.LearningSetID === setId);
+        return (entry?.cards || []).map(id => Number(id));
     }
 
     document.getElementById("startExam").addEventListener("click", async () => {
@@ -34,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error('Failed to load cards');
             let { cards } = await res.json();
 
-            cards = cards.filter(card => !knownCards.includes(Number(card.CardID)));
+            cards = cards.filter(card => !knownCards.includes(card.CardID));
             currentCards = cards;
 
             if (cards.length > 10) {
@@ -42,8 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             for (let i = cards.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [cards[i], cards[j]] = [cards[j], cards[i]];
+                let randomIndex = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[randomIndex]] = [cards[randomIndex], cards[i]];
             }
 
             const form = document.querySelector(".form-container");
@@ -96,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     if (userAnswer === correctAnswer) {
                         score++;
-                        learnedNow.push(Number(cards[i].CardID));
+                        learnedNow.push(cards[i].CardID);
                         input.style.backgroundColor = "#90EE90";
                     } else {
                         input.style.backgroundColor = "#FFB6C1";
@@ -120,20 +114,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     method: "PATCH",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        cards: learnedNow,
-                        score: Math.round((score / cards.length) * 100)
-                    })
+                    body: JSON.stringify({"cards": learnedNow.map(n => Number(n))})
                 });
+
             });
 
             showSolutionsButton.addEventListener("click", () => {
                 const solutions = form.querySelectorAll(".solution");
                 const isShowing = solutions[0].style.display === "block";
+
                 solutions.forEach(solution => {
                     solution.style.display = isShowing ? "none" : "block";
                 });
-                showSolutionsButton.textContent = isShowing ? "Lösungen anzeigen" : "Lösungen ausblenden";
+
+                showSolutionsButton.textContent = isShowing ?
+                    "Lösungen anzeigen" : "Lösungen ausblenden";
             });
 
         } catch (err) {
