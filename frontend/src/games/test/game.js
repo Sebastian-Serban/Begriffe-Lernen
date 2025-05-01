@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error('Failed to load cards');
             let { cards } = await res.json();
 
-            cards = cards.filter(card => !knownCards.includes(card.CardID));
+            cards = cards.filter(card => !knownCards.includes(Number(card.CardID)));
             currentCards = cards;
 
             if (cards.length > 10) {
