@@ -16,9 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to get user data');
         const data = await res.json();
-        const user = data || {};
-        console.log(user);
-        const entry = (user.Progress || []).find(e => Number(e.LearningSetID) === setId);
+        const user = data.User[0] || {};
+        const entry = (user.Progress || []).find(e => e.LearningSetID === setId);
         return (entry?.cards || []).map(id => Number(id));
     }
 
@@ -29,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error('Failed to load cards');
             let { cards } = await res.json();
 
-            cards = cards.filter(card => !knownCards.includes(Number(card.CardID)));
+            cards = cards.filter(card => !knownCards.includes(card.CardID));
             currentCards = cards;
 
             if (cards.length > 10) {
