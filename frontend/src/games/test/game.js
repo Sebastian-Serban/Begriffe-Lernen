@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         const user = data.User[0] || {};
         const entry = (user.Progress || []).find(e => Number(e.LearningSetID) === Number(setId));
+        console.log(entry);
         return (entry?.cards || []).map(id => Number(id));
     }
 
@@ -28,7 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!res.ok) throw new Error('Failed to load cards');
             let { cards } = await res.json();
 
-            cards = cards.filter(card => !knownCards.includes(Number(card.CardID)));
+            let filteredCards = [];
+            for (let i = cards.length - 1; i >= 0; i--) {
+                if (!knownCards.includes(Number(cards[i].CardID))) {
+                    filteredCards.push(cards[i]);
+                }
+            }
+
+            cards = filteredCards;
             currentCards = cards;
 
             if (cards.length > 10) {
@@ -39,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 let randomIndex = Math.floor(Math.random() * (i + 1));
                 [cards[i], cards[randomIndex]] = [cards[randomIndex], cards[i]];
             }
+
 
             const form = document.querySelector(".form-container");
             form.innerHTML = "";
