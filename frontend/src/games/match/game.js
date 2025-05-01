@@ -4,13 +4,25 @@ document.addEventListener("DOMContentLoaded", async function (event) {
     const baseURL = window.location.hostname === "127.0.0.1" ? "http://127.0.0.1:5000" : "";
     const params = new URLSearchParams(window.location.search);
     const set = params.get("set");
-    const personal_best = await fetch(`${baseURL}/api/sets/${set}`, {
-        method: "GET",
-        credentials: "include"
-    }).then(res => res.json()).then(result => {
-        console.log(result)
-        return result.set.Score
-    });
+
+    async function getUsername() {
+        const res = await fetch(`${baseURL}/api/session-check`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Not logged in');
+        const { user } = await res.json();
+        return user.username;
+    }
+
+    async function getUserProgress() {
+        const username = await getUsername();
+        const res = await fetch(`${baseURL}/api/users/${username}`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to get user data');
+        const data = await res.json();
+        const user = data.User[0] || {};
+        const entry = (user.Progress || []).find(e => e.LearningSetID === set);
+        return (entry?.score || undefined);
+    }
+
+    const user_progress = await getUserProgress();
 
     const gamestate = {
         selected_cards: [],
@@ -156,14 +168,13 @@ document.addEventListener("DOMContentLoaded", async function (event) {
                         this.stopTimer();
                         alert("You win. Time: " + this.time);
                         const parsed_time = parseFloat(this.time.substring(0, this.time.length - 1));
-                        if (personal_best > parsed_time) {
-                            await fetch(`${baseURL}/api/sets/${set}`, {
-                                method: "POST",
+                        const personal_best = user_progress
+                        if (!personal_best || personal_best > parsed_time) {
+                            await fetch(`${baseURL}/api/sets/${set}/cards`, {
+                                method: "PATCH",
                                 credentials: "include",
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({"Score": parsed_time})
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({"score": parsed_time})
                             });
                         }
 

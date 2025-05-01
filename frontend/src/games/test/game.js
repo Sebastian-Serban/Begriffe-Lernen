@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     method: "PATCH",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(learnedNow.map(n => Number(n)))
+                    body: JSON.stringify({"cards": learnedNow.map(n => Number(n))})
                 });
 
             });

@@ -162,7 +162,7 @@ function saveNewSet() {
 
     const method = currentSetId ? "POST" : "POST";
     const url = currentSetId ? `${baseURL}/api/sets/${currentSetId}` : `${baseURL}/api/sets`;
-    const body = JSON.stringify({ Title: title, Description: description, Score: 0 });
+    const body = JSON.stringify({ Title: title, Description: description});
 
     fetch(url, {
         method,

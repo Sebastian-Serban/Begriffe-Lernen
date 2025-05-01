@@ -246,10 +246,11 @@ def add_cards(set_id):
         supabase.table("Card").delete().eq("LearningSetID", set_id).execute()
         data = request.json
 
-        for c in data:
-            c["LearningSetID"] = set_id
+        if data:
+            for c in data:
+                c["LearningSetID"] = set_id
 
-        response = supabase.table("Card").insert(data).execute()
+            response = supabase.table("Card").insert(data).execute()
 
         return jsonify({"success": True, "cards": response.data}), 201
     except Exception as e:
@@ -261,19 +262,24 @@ def update_cards(set_id):
         if "user" not in session:
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        learned_cards = request.json
+        data = request.json
+        learned_cards = data["cards"] if "cards" in data else []
+        score = data["score"] if "score" in data else None
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         progress = supabase.table("User").select("Progress").eq("Email", session["user"]["email"]).execute().data[0]["Progress"] or []
         total = supabase.table("Card").select("*", count="exact").eq("LearningSetID", set_id).execute().count
 
         for i in progress:
             if i["LearningSetID"] == set_id:
+                if score:
+                    i["score"] = score
+
                 i["cards"] = list(set(i["cards"] + learned_cards))
                 if len(i["cards"]) >= total:
                     i["cards"] = []
                 break
         else:
-            progress.append({"LearningSetID": set_id, "cards": learned_cards})
+            progress.append({"LearningSetID": set_id, "cards": learned_cards, "score": score if score else 0.00})
 
         response = supabase.table("User").update({"Progress": progress}).eq("Email", session["user"]["email"]).execute()
 
@@ -289,9 +295,6 @@ def get_cards(set_id):
 
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         response = supabase.table("Card").select("*").eq("LearningSetID", set_id).execute()
-
-        if not response.data:
-            return jsonify({"success": False, "error": "No cards found."}), 404
 
         return jsonify({"success": True, "cards": response.data}), 200
     except Exception as e:
