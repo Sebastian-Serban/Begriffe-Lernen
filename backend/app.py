@@ -103,13 +103,18 @@ def logout():
 
 @app.route("/api/users/<username>", methods=["GET"])
 def get_user(username):
+    # 1) Session prüfen
     if "user" not in session:
         return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    session_user = session["user"]["username"]
+    me = session["user"]["username"]
 
-    if username == session_user:
+    # 2) zwei Modi:
+    #    - exakt, wenn ich mein eigenes Profil abfrage
+    #    - fuzzy-contains für die Suchleiste
+    if username == me:
+        # exakte Suche
         response = (
             supabase
             .table("User")
@@ -117,9 +122,13 @@ def get_user(username):
             .eq("Username", username)
             .execute()
         )
-        print(response)
+        print("DB lookup exact:", response.data)
     else:
-        pattern = f"%{username}%"
+        # „contains“, case-insensitive
+        # UND wir entfernen Leerzeichen aus search-term, falls DB-Wert
+        # ohne Leerzeichen gespeichert ist
+        sanitized = re.sub(r"\s+", "", username)
+        pattern = f"%{sanitized}%"
         response = (
             supabase
             .table("User")
@@ -127,9 +136,8 @@ def get_user(username):
             .ilike("Username", pattern)
             .execute()
         )
-        print(response)
+        print("DB lookup search:", pattern, response.data)
 
-    print("DB lookup:", "exact" if username == session_user else "search", response.data)
     return jsonify({"success": True, "User": response.data}), 200
 
 @app.route("/api/users", methods=["DELETE"])
