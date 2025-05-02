@@ -9,10 +9,26 @@ from flask_cors import CORS
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+app.config.update(
+    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True
+)
+
+CORS(
+    app,
+    supports_credentials=True,
+    resources={
+        r"/api/*": {
+            "origins": [
+                "http://localhost:3000",
+                "https://dein-frontend.vercel.app"
+            ]
+        }
+    }
+)
 app.secret_key = os.getenv("SECRET_KEY", "supersecret")
 app.permanent_session_lifetime = timedelta(minutes=90)
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
