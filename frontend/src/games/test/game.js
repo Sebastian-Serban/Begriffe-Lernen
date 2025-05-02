@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function getUserProgress() {
-
             const username = await getUsername();
             console.log("Username:", username);
 

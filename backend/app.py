@@ -268,6 +268,7 @@ def add_cards(set_id):
 
             response = supabase.table("Card").insert(data).execute()
 
+            print(response.data)
         return jsonify({"success": True, "cards": response.data}), 201
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
