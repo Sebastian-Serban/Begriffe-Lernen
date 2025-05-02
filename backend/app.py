@@ -103,19 +103,30 @@ def logout():
 
 @app.route("/api/users/<username>", methods=["GET"])
 def get_user(username):
-    try:
-        if "user" not in session:
-            return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        regex = re.escape(username) if len(username) > 3 else r"\m" + re.escape(username)
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        response = supabase.table("User").select("*").filter("Username","imatch",regex).execute()
+    if "user" not in session:
+        return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-        print(response.data)
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-        return jsonify({"success": True, "User": response.data}), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
+
+    if session["user"]["username"] == username:
+
+        pattern = f'^{re.escape(username)}$'
+    else:
+
+        escaped = re.escape(username)
+        pattern = f'.*{escaped}.*'
+
+
+    response = supabase\
+        .table("User")\
+        .select("*")\
+        .filter("Username", "~*", pattern)\
+        .execute()
+
+    print("REGEX-Pattern:", pattern, "->", response.data)
+    return jsonify({"success": True, "User": response.data}), 200
 
 @app.route("/api/users", methods=["DELETE"])
 def delete_user():
