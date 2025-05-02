@@ -104,29 +104,29 @@ def logout():
 
 @app.route("/api/users/<username>")
 def get_user(username):
-    if "user" not in session:
-        return jsonify(...), 401
+    try:
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-    # 1) URL-Decoding sicherstellen
-    decoded = unquote_plus(username)
+        decoded = unquote_plus(username)
 
-    # 2) Profil-Lookup vs. Search (hier nur Search gezeigt)
-    pattern = f"%{decoded}%"
+        pattern = f"%{decoded}%"
 
-    # 3) ILIKE-Query
-    response = (
-        create_client(SUPABASE_URL, SUPABASE_KEY)
-        .table("User")
-        .select("*")
-        .ilike("Username", pattern)
-        .execute()
-    )
+        response = (
+            create_client(SUPABASE_URL, SUPABASE_KEY)
+            .table("User")
+            .select("*")
+            .ilike("Username", pattern)
+            .execute()
+        )
 
-    print("Decoded username:", repr(decoded))
-    print("Pattern:", repr(pattern))
-    print("DB result:", response.data)
+        print("Decoded username:", repr(decoded))
+        print("Pattern:", repr(pattern))
+        print("DB result:", response.data)
 
-    return jsonify({"success": True, "User": response.data}), 200
+        return jsonify({"success": True, "User": response.data}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
 @app.route("/api/users", methods=["DELETE"])
 def delete_user():
