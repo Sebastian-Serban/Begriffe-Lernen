@@ -6,6 +6,7 @@ from flask import Flask, jsonify, request, session
 from dotenv import load_dotenv
 from supabase import create_client
 from flask_cors import CORS
+from urllib.parse import unquote_plus
 
 load_dotenv()
 app = Flask(__name__)
@@ -101,42 +102,29 @@ def logout():
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
-@app.route("/api/users/<username>", methods=["GET"])
+@app.route("/api/users/<username>")
 def get_user(username):
-    # 1) Session prüfen
     if "user" not in session:
-        return jsonify({"success": False, "error": "Invalid credentials"}), 401
+        return jsonify(...), 401
 
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-    me = session["user"]["username"]
+    # 1) URL-Decoding sicherstellen
+    decoded = unquote_plus(username)
 
-    # 2) zwei Modi:
-    #    - exakt, wenn ich mein eigenes Profil abfrage
-    #    - fuzzy-contains für die Suchleiste
-    if username == me:
-        # exakte Suche
-        response = (
-            supabase
-            .table("User")
-            .select("*")
-            .eq("Username", username)
-            .execute()
-        )
-        print("DB lookup exact:", response.data)
-    else:
-        # „contains“, case-insensitive
-        # UND wir entfernen Leerzeichen aus search-term, falls DB-Wert
-        # ohne Leerzeichen gespeichert ist
-        sanitized = re.sub(r"\s+", "", username)
-        pattern = f"%{sanitized}%"
-        response = (
-            supabase
-            .table("User")
-            .select("*")
-            .ilike("Username", pattern)
-            .execute()
-        )
-        print("DB lookup search:", pattern, response.data)
+    # 2) Profil-Lookup vs. Search (hier nur Search gezeigt)
+    pattern = f"%{decoded}%"
+
+    # 3) ILIKE-Query
+    response = (
+        create_client(SUPABASE_URL, SUPABASE_KEY)
+        .table("User")
+        .select("*")
+        .ilike("Username", pattern)
+        .execute()
+    )
+
+    print("Decoded username:", repr(decoded))
+    print("Pattern:", repr(pattern))
+    print("DB result:", response.data)
 
     return jsonify({"success": True, "User": response.data}), 200
 
