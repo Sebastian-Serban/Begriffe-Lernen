@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function getUserProgress() {
-        try {
+
             const username = await getUsername();
             console.log("Username:", username);
 
@@ -37,10 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Known cards:", knownCards);
 
             return knownCards;
-        } catch (error) {
-            console.error("Error in getUserProgress:", error);
-            return [];
-        }
+
     }
 
 
