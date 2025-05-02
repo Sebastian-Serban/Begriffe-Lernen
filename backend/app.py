@@ -120,10 +120,6 @@ def get_user(username):
             .execute()
         )
 
-        print("Decoded username:", repr(decoded))
-        print("Pattern:", repr(pattern))
-        print("DB result:", response.data)
-
         return jsonify({"success": True, "User": response.data}), 200
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
