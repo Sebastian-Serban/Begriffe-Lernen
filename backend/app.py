@@ -103,29 +103,31 @@ def logout():
 
 @app.route("/api/users/<username>", methods=["GET"])
 def get_user(username):
-
     if "user" not in session:
         return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    session_user = session["user"]["username"]
 
-
-    if session["user"]["username"] == username:
-
-        pattern = f'^{re.escape(username)}$'
+    if username == session_user:
+        response = (
+            supabase
+            .table("User")
+            .select("*")
+            .eq("Username", username)
+            .execute()
+        )
     else:
+        pattern = f"%{username}%"
+        response = (
+            supabase
+            .table("User")
+            .select("*")
+            .ilike("Username", pattern)
+            .execute()
+        )
 
-        escaped = re.escape(username)
-        pattern = f'.*{escaped}.*'
-
-
-    response = supabase\
-        .table("User")\
-        .select("*")\
-        .filter("Username", "~*", pattern)\
-        .execute()
-
-    print("REGEX-Pattern:", pattern, "->", response.data)
+    print("DB lookup:", "exact" if username == session_user else "search", response.data)
     return jsonify({"success": True, "User": response.data}), 200
 
 @app.route("/api/users", methods=["DELETE"])
