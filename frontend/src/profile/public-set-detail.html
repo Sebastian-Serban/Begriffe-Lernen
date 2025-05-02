@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Details</title>
+    <link rel="stylesheet" href="../profile/styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;,">
+</head>
+<body>
+<div class="layout">
+    <main class="main-view">
+        <div class="back-btn-wrapper">
+            <button class="back-btn" onclick="window.location.href='publicsets.html'">← Zurück</button>
+        </div>
+
+        <div class="set-detail-container">
+            <h2 id="detail-title"></h2>
+            <p id="detail-description"></p>
+            <small id="set-author"></small>
+            <div id="card-list"></div>
+            <div class="detail-actions">
+                <button onclick="startGame('cards')">Karteikarten</button>
+                <button onclick="startGame('match')">Matching</button>
+                <button onclick="startGame('test')">Prüfungsmodus</button>
+            </div>
+        </div>
+    </main>
+</div>
+<script src="public-set-detail.js"></script>
+</body>
+</html>

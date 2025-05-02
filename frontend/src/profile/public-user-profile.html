@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benutzerprofil</title>
+    <link rel="stylesheet" href="../profile/styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;,">
+</head>
+<body>
+<div class="layout">
+    <main class="main-view">
+        <div class="back-btn-wrapper">
+            <button class="back-btn" onclick="window.location.href='publicsets.html'">← Zurück</button>
+        </div>
+
+        <h2 id="profile-username"></h2>
+        <div class="topbar">
+            <input id="search-input" type="text" placeholder="In Sets suchen..." oninput="filterSets()">
+        </div>
+        <div id="set-list" class="set-list"></div>
+    </main>
+</div>
+<script src="public-user-profile.js"></script>
+</body>
+</html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Öffentliche Lernsets</title>
     <link rel="stylesheet" href="../profile/styles.css">
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;,">
 </head>
 <body>
 <div class="layout">
@@ -12,26 +13,39 @@
         <div class="back-btn-wrapper">
             <button class="back-btn" onclick="window.location.href='../profile/overview.html'">← Zurück</button>
         </div>
+
         <div class="topbar">
-            <input id="search-input" type="text" placeholder="Lernsets oder Benutzer suchen..." oninput="searchPublicSets()">
+            <input id="search-input" type="text" placeholder="Lernsets oder Benutzer suchen..." oninput="handleSearch()">
         </div>
 
-        <section id="publicsets-section">
-            <h1>Öffentliche Lernsets</h1>
-            <div id="public-set-list" class="set-list"></div>
-            <p id="no-publicsets" class="hidden">Keine Lernsets gefunden.</p>
-        </section>
+        <div class="search-results">
+            <div class="users-section">
+                <h2>Benutzer</h2>
+                <div id="users-list" class="users-list"></div>
+            </div>
+
+            <div class="sets-section">
+                <h2>Lernsets</h2>
+                <div id="set-list" class="set-list"></div>
+            </div>
+        </div>
 
         <section id="detail-section" class="hidden">
-            <button class="back-btn" onclick="backToPublicOverview()">← Zurück</button>
+            <button class="back-btn" onclick="backToSearch()">← Zurück</button>
             <h2 id="detail-title"></h2>
             <p id="detail-description"></p>
             <div id="card-list"></div>
             <div class="detail-actions">
-                <button onclick="startPublicGame('cards')">Karteikarten</button>
-                <button onclick="startPublicGame('match')">Matching</button>
-                <button onclick="startPublicGame('test')">Prüfungsmodus</button>
+                <button onclick="startGame('cards')">Karteikarten</button>
+                <button onclick="startGame('match')">Matching</button>
+                <button onclick="startGame('test')">Prüfungsmodus</button>
             </div>
+        </section>
+
+        <section id="user-profile-section" class="hidden">
+            <button class="back-btn" onclick="backToSearch()">← Zurück</button>
+            <h2 id="profile-username"></h2>
+            <div id="profile-sets-list" class="set-list"></div>
         </section>
     </main>
 </div>

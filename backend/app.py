@@ -22,8 +22,8 @@ CORS(
     resources={
         r"/api/*": {
             "origins": [
-                "http://localhost:3000",
-                "https://dein-frontend.vercel.app"
+                "http://127.0.0.1:8000",
+                "https://begriffe-lernen.vercel.app"
             ]
         }
     }
@@ -177,7 +177,7 @@ def get_sets(user_id):
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        response = supabase.table("LearningSet").select("*, User!inner()").eq("User.UserID", user_id).execute()
+        response = supabase.table("LearningSet").select("*, User!inner(Username)").eq("UserID", user_id).execute()
 
         if not response.data:
             return jsonify({"success": False, "error": "No sets found."}), 404
@@ -185,6 +185,21 @@ def get_sets(user_id):
         return jsonify({"success": True, "sets": response.data}), 200
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
+
+
+
+@app.route("/api/allsets", methods=["GET"])
+def get_all_sets():
+    try:
+        if "user" not in session:
+            return jsonify({"success": False, "error": "Invalid credentials"}), 401
+
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        response = supabase.table("LearningSet").select("*, User!inner(Username)").execute()
+
+        return jsonify({"success": True, "sets": response.data}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/sets/name/<set_title>", methods=["GET"])
 def get_sets_name(set_title):
@@ -194,14 +209,13 @@ def get_sets_name(set_title):
 
         regex = re.escape(set_title) if len(set_title) > 1 else r"\m" + re.escape(set_title)
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        response = supabase.table("LearningSet").select("*").filter("Title","imatch",regex).execute()
-
-        if not response.data:
-            return jsonify({"success": False, "error": "No sets found."}), 404
+        response = supabase.table("LearningSet").select("*, User!inner(Username)").filter("Title","imatch",regex).execute()
 
         return jsonify({"success": True, "sets": response.data}), 200
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
+
+
 
 @app.route("/api/sets/<int:set_id>", methods=["GET"])
 def get_set(set_id):
@@ -271,7 +285,6 @@ def add_cards(set_id):
         supabase.table("Card").delete().eq("LearningSetID", set_id).execute()
         data = request.json
 
-        print(data)
 
         if data:
             for c in data:
@@ -279,7 +292,6 @@ def add_cards(set_id):
 
             response = supabase.table("Card").insert(data).execute()
 
-            print(response.data)
         return jsonify({"success": True, "cards": response.data}), 201
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
@@ -328,18 +340,6 @@ def get_cards(set_id):
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
 
-@app.route("/api/allsets", methods=["GET"])
-def get_all_sets():
-    try:
-        if "user" not in session:
-            return jsonify({"success": False, "error": "Invalid credentials"}), 401
-
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        response = supabase.table("LearningSet").select("*").execute()
-
-        return jsonify({"success": True, "sets": response.data}), 200
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
 
 
 if __name__ == "__main__":

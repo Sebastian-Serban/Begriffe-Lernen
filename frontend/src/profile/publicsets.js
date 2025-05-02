@@ -9,25 +9,27 @@ function loadRandomPublicSets() {
         fetch(`${baseURL}/api/allsets`, { credentials: "include" }).then(res => res.json()),
         fetch(`${baseURL}/api/session-check`, { credentials: "include" }).then(res => res.json())
     ]).then(([setsData, sessionData]) => {
+        console.log("Sets Data:", setsData);
         if (!setsData.success || !sessionData.success) {
-            document.getElementById("no-publicsets").classList.remove("hidden");
+            document.getElementById("set-list").innerHTML = '<p class="no-results">Keine Lernsets gefunden</p>';
             return;
         }
 
         const allSets = setsData.sets;
         const currentUserEmail = sessionData.user.email;
-
+        console.log("All Sets:", allSets);
         const publicSets = allSets.filter(set => set.User && set.User.Email !== currentUserEmail);
 
         if (publicSets.length > 0) {
             const randomSets = shuffleArray(publicSets).slice(0, 6);
-            displayPublicSets(randomSets);
+            console.log("Random Sets:", randomSets);
+            displaySearchResults([], randomSets);
         } else {
-            document.getElementById("no-publicsets").classList.remove("hidden");
+            displaySearchResults([], []);
         }
     }).catch(err => {
         console.error(err);
-        document.getElementById("no-publicsets").classList.remove("hidden");
+        displaySearchResults([], []);
     });
 }
 
@@ -36,7 +38,7 @@ function shuffleArray(array) {
     return array.sort(() => Math.random() - 0.5);
 }
 
-function searchPublicSets() {
+function handleSearch() {
     clearTimeout(searchTimeout);
 
     searchTimeout = setTimeout(() => {
@@ -47,7 +49,10 @@ function searchPublicSets() {
             return;
         }
 
-        document.getElementById("public-set-list").innerHTML = "<p>🔎 Suche läuft...</p>";
+        if (term.length < 2) {
+            displaySearchResults([], []);
+            return;
+        }
 
         const searchByName = fetch(`${baseURL}/api/sets/name/${encodeURIComponent(term)}`, { credentials: "include" });
         const searchByUser = fetch(`${baseURL}/api/users/${encodeURIComponent(term)}`, { credentials: "include" });
@@ -56,70 +61,143 @@ function searchPublicSets() {
             .then(responses => Promise.all(responses.map(r => r.json())))
             .then(([setsData, usersData]) => {
                 let results = [];
+                const users = usersData.success ? usersData.User : [];
 
                 if (setsData.success) {
-                    results = setsData.sets.map(set => ({ ...set, Username: null }));
+                    results = setsData.sets;
                 }
 
-                if (usersData.success && usersData.User.length > 0) {
-                    const user = usersData.User[0];
-                    fetch(`${baseURL}/api/users/${user.UserID}/sets`, { credentials: "include" })
-                        .then(res => res.json())
-                        .then(userSetsData => {
-                            if (userSetsData.success) {
-                                const userSets = userSetsData.sets.map(set => ({ ...set, Username: user.Username }));
-                                results = results.concat(userSets);
-                            }
-                            displayPublicSets(results);
-                        });
+                if (users.length > 0) {
+                    Promise.all(users.map(user =>
+                        fetch(`${baseURL}/api/users/${user.UserID}/sets`, { credentials: "include" })
+                            .then(res => res.json())
+                            .then(userSetsData => {
+                                if (userSetsData.success) {
+                                    return userSetsData.sets;
+                                }
+                                return [];
+                            })
+                    )).then(userSets => {
+                        const flatSets = userSets.flat();
+                        displaySearchResults(users, [...results, ...flatSets]);
+                    });
                 } else {
-                    displayPublicSets(results);
+                    displaySearchResults(users, results);
                 }
             });
     }, 300);
 }
 
-function displayPublicSets(sets) {
-    const list = document.getElementById("public-set-list");
-    list.innerHTML = "";
+function displaySearchResults(users, sets) {
+    const usersList = document.getElementById('users-list');
+    usersList.innerHTML = users.length === 0
+        ? '<p class="no-results">Keine Benutzer gefunden</p>'
+        : users.map(user => `
+            <div class="user-card" onclick="window.location.href='public-user-profile.html?userId=${user.UserID}&username=${encodeURIComponent(user.Username)}'">
+                <h3>${user.Username}</h3>
+            </div>
+        `).join('');
 
-    if (!sets || sets.length === 0) {
-        document.getElementById("no-publicsets").classList.remove("hidden");
-        return;
-    }
-
-    document.getElementById("no-publicsets").classList.add("hidden");
-
-    sets.forEach(set => {
-        const div = document.createElement("div");
-        div.className = "set-card";
-        div.innerHTML = `<h3>${set.Title}</h3><p>${set.Description || ""}</p><small>von ${set.Username || "Unbekannt"}</small>`;
-        div.onclick = () => showPublicSetDetail(set.LearningSetID, set.Title, set.Description);
-        list.appendChild(div);
-    });
+    const setsList = document.getElementById('set-list');
+    setsList.innerHTML = sets.length === 0
+        ? '<p class="no-results">Keine Lernsets gefunden</p>'
+        : sets.map(set => {
+            const username = set.User?.Username || "Unbekannt";
+            return `
+                <div class="set-card" onclick="window.location.href='public-set-detail.html?setId=${set.LearningSetID}'">
+                    <h3>${set.Title}</h3>
+                    <p>${set.Description || ''}</p>
+                    <small>von ${username}</small>
+                </div>
+            `;
+        }).join('');
 }
 
-function showPublicSetDetail(id, title, description) {
-    currentPublicSetId = id;
-    document.getElementById("detail-title").textContent = title;
-    document.getElementById("detail-description").textContent = description;
-    fetch(`${baseURL}/api/sets/${id}/cards`, { credentials: "include" })
-        .then(res => res.json())
-        .then(data => {
-            const list = document.getElementById("card-list");
-            list.innerHTML = "";
-            if (!data.success || !data.cards) return;
-            data.cards.forEach(card => {
-                const item = document.createElement("div");
-                item.className = "card-item";
-                item.innerHTML = `<strong>${card.Term}</strong><br>${card.Explanation}`;
-                list.appendChild(item);
-            });
-            showPublicSection("detail-section");
+
+
+
+
+async function showUserProfile(userId, username) {
+    try {
+        const response = await fetch(`${baseURL}/api/users/${userId}/sets`, {
+            credentials: 'include'
         });
+        const data = await response.json();
+
+        document.getElementById('profile-username').textContent = `Profil von ${username}`;
+        const setsList = document.getElementById('profile-sets-list');
+
+        if (data.success && data.sets && data.sets.length > 0) {
+
+            const setsWithUsername = data.sets.map(set => ({
+                ...set,
+                User: { Username: username }
+            }));
+            displaySearchResults([], setsWithUsername);
+            setsList.innerHTML = setsWithUsername.map(set => `
+                <div class="set-card" onclick="showSetDetail(${set.LearningSetID})">
+                    <h3>${set.Title}</h3>
+                    <p>${set.Description || ''}</p>
+                    <small>von ${username}</small>
+                </div>
+            `).join('');
+        } else {
+            setsList.innerHTML = '<p class="no-results">Keine Lernsets vorhanden</p>';
+        }
+
+        showSection('user-profile-section');
+    } catch (error) {
+        console.error('Fehler beim Laden des Profils:', error);
+    }
 }
 
-function startPublicGame(mode) {
+
+async function showSetDetail(setId) {
+    try {
+        const [setResponse, cardsResponse] = await Promise.all([
+            fetch(`${baseURL}/api/sets/${setId}`, { credentials: 'include' }),
+            fetch(`${baseURL}/api/sets/${setId}/cards`, { credentials: 'include' })
+        ]);
+
+        const [setData, cardsData] = await Promise.all([
+            setResponse.json(),
+            cardsResponse.json()
+        ]);
+
+        currentPublicSetId = setId;
+        document.getElementById('detail-title').textContent = setData.set.Title;
+        document.getElementById('detail-description').textContent = setData.set.Description || '';
+
+        const list = document.getElementById('card-list');
+        list.innerHTML = (!cardsData.cards || cardsData.cards.length === 0)
+            ? '<p class="no-results">Keine Karten in diesem Set</p>'
+            : cardsData.cards.map(card => `
+                <div class="card-item">
+                    <strong>${card.Term}</strong><br>
+                    ${card.Explanation}
+                </div>
+            `).join('');
+
+        showSection('detail-section');
+    } catch (error) {
+        console.error('Fehler beim Laden der Details:', error);
+    }
+}
+
+function showSection(id) {
+    document.querySelectorAll('main > section, .search-results').forEach(s => s.classList.add('hidden'));
+    if (id === 'detail-section' || id === 'user-profile-section') {
+        document.getElementById(id).classList.remove('hidden');
+    } else {
+        document.querySelector('.search-results').classList.remove('hidden');
+    }
+}
+
+function backToSearch() {
+    showSection('search-results');
+}
+
+function startGame(mode) {
     if (!currentPublicSetId) return;
     const path = mode === "cards"
         ? `../games/cards/game.html?set=${currentPublicSetId}`
@@ -127,13 +205,4 @@ function startPublicGame(mode) {
             ? `../games/match/game.html?set=${currentPublicSetId}`
             : `../games/test/game.html?set=${currentPublicSetId}`;
     window.location.href = path;
-}
-
-function backToPublicOverview() {
-    showPublicSection("publicsets-section");
-}
-
-function showPublicSection(id) {
-    document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
-    document.getElementById(id).classList.remove("hidden");
 }

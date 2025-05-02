@@ -305,3 +305,56 @@ button:hover {
         right: 2rem;
     }
 }
+
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.users-section,
+.sets-section {
+    width: 100%;
+}
+
+.users-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.user-card {
+    background: var(--card);
+    color: var(--light);
+    padding: 1.5rem;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.user-card:hover {
+    transform: scale(1.02);
+}
+
+.no-results {
+    color: var(--text);
+    font-style: italic;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .search-results {
+        gap: 1.5rem;
+    }
+
+    .users-list,
+    .set-list {
+        grid-template-columns: 1fr;
+    }
+
+    .user-card,
+    .set-card {
+        margin-bottom: 1rem;
+    }
+}
