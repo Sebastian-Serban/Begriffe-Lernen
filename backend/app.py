@@ -262,6 +262,8 @@ def add_cards(set_id):
         supabase.table("Card").delete().eq("LearningSetID", set_id).execute()
         data = request.json
 
+        print(data)
+
         if data:
             for c in data:
                 c["LearningSetID"] = set_id
