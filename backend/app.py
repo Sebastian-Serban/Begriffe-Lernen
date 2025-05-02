@@ -117,6 +117,7 @@ def get_user(username):
             .eq("Username", username)
             .execute()
         )
+        print(response)
     else:
         pattern = f"%{username}%"
         response = (
@@ -126,6 +127,7 @@ def get_user(username):
             .ilike("Username", pattern)
             .execute()
         )
+        print(response)
 
     print("DB lookup:", "exact" if username == session_user else "search", response.data)
     return jsonify({"success": True, "User": response.data}), 200
