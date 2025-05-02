@@ -111,6 +111,8 @@ def get_user(username):
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         response = supabase.table("User").select("*").filter("Username","imatch",regex).execute()
 
+        print(response.data)
+
         return jsonify({"success": True, "User": response.data}), 200
     except Exception as e:
         return jsonify({"success": False, "error": "Internal server error", "detail": str(e)}), 500
