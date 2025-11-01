@@ -16,14 +16,9 @@ function loadRandomPublicSets() {
         }
 
         const allSets = setsData.sets;
-        const currentUserEmail = sessionData.user.email;
-        console.log("All Sets:", allSets);
-        const publicSets = allSets.filter(set => set.User && set.User.Email !== currentUserEmail);
 
-        if (publicSets.length > 0) {
-            const randomSets = shuffleArray(publicSets).slice(0, 6);
-            console.log("Random Sets:", randomSets);
-            displaySearchResults([], randomSets);
+        if (allSets.length > 0) {
+            displaySearchResults([], allSets);
         } else {
             displaySearchResults([], []);
         }
@@ -31,11 +26,6 @@ function loadRandomPublicSets() {
         console.error(err);
         displaySearchResults([], []);
     });
-}
-
-
-function shuffleArray(array) {
-    return array.sort(() => Math.random() - 0.5);
 }
 
 function handleSearch() {
@@ -78,6 +68,7 @@ function handleSearch() {
                                 return [];
                             })
                     )).then(userSets => {
+                        console.log("User Sets:", userSets);
                         const flatSets = userSets.flat();
                         displaySearchResults(users, [...results, ...flatSets]);
                     });
@@ -102,12 +93,12 @@ function displaySearchResults(users, sets) {
     setsList.innerHTML = sets.length === 0
         ? '<p class="no-results">Keine Lernsets gefunden</p>'
         : sets.map(set => {
-            const username = set.User?.Username || "Unbekannt";
+            console.log("Set:", set);
             return `
                 <div class="set-card" onclick="window.location.href='public-set-detail.html?setId=${set.LearningSetID}'">
                     <h3>${set.Title}</h3>
                     <p>${set.Description || ''}</p>
-                    <small>von ${username}</small>
+                    <small>von ${set.Username}</small>
                 </div>
             `;
         }).join('');

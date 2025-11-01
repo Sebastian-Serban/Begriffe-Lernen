@@ -195,7 +195,8 @@ def get_all_sets():
             return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        response = supabase.table("LearningSet").select("*, User!inner(Username)").execute()
+        response = supabase.table("LearningSet").select("*").execute()
+        print(response.data)
 
         return jsonify({"success": True, "sets": response.data}), 200
     except Exception as e:
